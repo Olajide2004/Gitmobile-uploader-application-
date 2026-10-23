@@ -1,0 +1,6 @@
+{
+  "name": "GitMobile Uploader",
+  "description": "Mobile Git and GitHub folder uploader with GitHub token authentication, repository commit workflows, Osun Hive monetization ads, and live RSS news feed with notifications.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
