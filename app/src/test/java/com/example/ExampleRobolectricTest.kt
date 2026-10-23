@@ -54,6 +54,33 @@ class ExampleRobolectricTest {
     }
 
     @Test
+    fun `parse sample blogspot atom feed`() {
+        val bloggerAtomXml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <feed xmlns="http://www.w3.org/2005/Atom">
+                <title>Osun Hive</title>
+                <link rel="alternate" type="text/html" href="https://www.osunhive.name.ng/"/>
+                <entry>
+                    <title>Osun State Tech Summit Announced</title>
+                    <link rel="alternate" type="text/html" href="https://www.osunhive.name.ng/2026/10/tech-summit.html"/>
+                    <published>2026-10-23T10:00:00Z</published>
+                    <category term="Tech Events"/>
+                    <content type="html">&lt;div&gt;&lt;img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87" /&gt;Join local innovators in Osogbo.&lt;/div&gt;</content>
+                </entry>
+            </feed>
+        """.trimIndent()
+
+        val feed = RssParser.parse(bloggerAtomXml)
+        assertEquals("Osun Hive", feed.title)
+        assertEquals(1, feed.items.size)
+        val entry = feed.items.first()
+        assertEquals("Osun State Tech Summit Announced", entry.title)
+        assertEquals("https://www.osunhive.name.ng/2026/10/tech-summit.html", entry.link)
+        assertEquals("Tech Events", entry.category)
+        assertTrue(entry.imageUrl?.contains("unsplash") == true)
+    }
+
+    @Test
     fun `ad monetization manager tracks impressions and clicks`() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val adManager = AdMonetizationManager(context)

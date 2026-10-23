@@ -72,17 +72,26 @@ object RssParser {
                                     currentTitle = parser.nextText().trim()
                                 }
                                 tagName.equals("link", ignoreCase = true) -> {
+                                    val rel = parser.getAttributeValue(null, "rel")
                                     val href = parser.getAttributeValue(null, "href")
-                                    currentLink = if (!href.isNullOrBlank()) href else parser.nextText().trim()
+                                    if (!href.isNullOrBlank()) {
+                                        if (rel == null || rel.equals("alternate", ignoreCase = true) || currentLink.isBlank()) {
+                                            currentLink = href
+                                        }
+                                    } else {
+                                        val text = parser.nextText().trim()
+                                        if (text.isNotBlank()) currentLink = text
+                                    }
                                 }
                                 tagName.equals("description", ignoreCase = true) ||
                                 tagName.equals("summary", ignoreCase = true) ||
-                                tagName.equals("encoded", ignoreCase = true) -> {
+                                tagName.equals("encoded", ignoreCase = true) ||
+                                tagName.equals("content", ignoreCase = true) -> {
                                     val rawDesc = parser.nextText().trim()
                                     if (currentImageUrl == null) {
                                         currentImageUrl = extractImageUrl(rawDesc)
                                     }
-                                    if (currentDescription.isBlank() || tagName.equals("encoded", ignoreCase = true)) {
+                                    if (currentDescription.isBlank() || tagName.equals("summary", ignoreCase = true) || tagName.equals("description", ignoreCase = true)) {
                                         currentDescription = cleanHtml(rawDesc)
                                     }
                                 }
@@ -92,12 +101,20 @@ object RssParser {
                                     currentPubDate = parser.nextText().trim()
                                 }
                                 tagName.equals("creator", ignoreCase = true) ||
-                                tagName.equals("author", ignoreCase = true) -> {
-                                    currentAuthor = parser.nextText().trim()
+                                tagName.equals("author", ignoreCase = true) ||
+                                tagName.equals("name", ignoreCase = true) -> {
+                                    val text = parser.nextText().trim()
+                                    if (text.isNotBlank() && currentAuthor == null) {
+                                        currentAuthor = text
+                                    }
                                 }
                                 tagName.equals("category", ignoreCase = true) -> {
-                                    if (currentCategory == null) {
-                                        currentCategory = parser.nextText().trim()
+                                    val term = parser.getAttributeValue(null, "term")
+                                    if (!term.isNullOrBlank()) {
+                                        if (currentCategory == null) currentCategory = term
+                                    } else {
+                                        val catText = parser.nextText().trim()
+                                        if (catText.isNotBlank() && currentCategory == null) currentCategory = catText
                                     }
                                 }
                                 tagName.equals("guid", ignoreCase = true) ||
@@ -105,10 +122,9 @@ object RssParser {
                                     currentGuid = parser.nextText().trim()
                                 }
                                 tagName.equals("enclosure", ignoreCase = true) ||
-                                tagName.equals("content", ignoreCase = true) -> {
+                                tagName.equals("thumbnail", ignoreCase = true) -> {
                                     val url = parser.getAttributeValue(null, "url")
-                                    val type = parser.getAttributeValue(null, "type")
-                                    if (!url.isNullOrBlank() && (type?.startsWith("image") == true || url.contains(".jpg") || url.contains(".png") || url.contains(".jpeg") || url.contains(".webp"))) {
+                                    if (!url.isNullOrBlank()) {
                                         currentImageUrl = url
                                     }
                                 }

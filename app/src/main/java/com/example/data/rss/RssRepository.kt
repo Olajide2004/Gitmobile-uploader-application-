@@ -28,10 +28,12 @@ class RssRepository(
     val feedState: StateFlow<RssFeedState> = _feedState.asStateFlow()
 
     private val feedUrls = listOf(
-        "https://www.osunhive.name.ng/feed/",
-        "https://www.osunhive.name.ng/?feed=rss2",
-        "https://www.osunhive.name.ng/rss",
-        "https://www.osunhive.name.ng/feed/rss/"
+        "https://www.osunhive.name.ng/feeds/posts/default?alt=rss",
+        "https://www.osunhive.name.ng/feeds/posts/default",
+        "https://www.osunhive.name.ng/feeds/posts/summary?alt=rss",
+        "https://www.osunhive.name.ng/atom.xml",
+        "https://www.osunhive.name.ng/rss.xml",
+        "https://www.osunhive.name.ng/feed/"
     )
 
     suspend fun fetchFeed(forceRefresh: Boolean = false) {
