@@ -84,6 +84,7 @@ import com.example.MainViewModel
 import com.example.data.github.UploadPhase
 import com.example.ui.components.FolderPreviewTree
 import com.example.ui.components.OsunHiveNativeSponsoredCard
+import com.example.ui.components.UploadWorkflowProgressBar
 import com.example.ui.theme.GitBlue
 import com.example.ui.theme.GitBorder
 import com.example.ui.theme.GitGreen
@@ -589,77 +590,13 @@ fun UploaderScreen(
             }
         }
 
-        // Section 4: Upload Progress (Visible when uploading or failed)
+        // Section 4: Upload Progress Bar & Workflow Status
         val isUploading = uploadProgress.phase != UploadPhase.IDLE && uploadProgress.phase != UploadPhase.COMPLETED
         AnimatedVisibility(visible = isUploading) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("upload_progress_card"),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (uploadProgress.phase == UploadPhase.FAILED) GitRed.copy(alpha = 0.1f) else GitSurface
-                ),
-                border = androidx.compose.foundation.BorderStroke(
-                    1.dp,
-                    if (uploadProgress.phase == UploadPhase.FAILED) GitRed else GitBlue
-                ),
-                shape = RoundedCornerShape(14.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = when (uploadProgress.phase) {
-                                UploadPhase.SCANNING_FOLDER -> "Scanning Directory Tree"
-                                UploadPhase.UPLOADING_BLOBS -> "Uploading Git Blobs (${uploadProgress.currentFile}/${uploadProgress.totalFiles})"
-                                UploadPhase.GENERATING_TREE -> "Building Git Tree"
-                                UploadPhase.CREATING_COMMIT -> "Writing Git Commit"
-                                UploadPhase.UPDATING_BRANCH -> "Updating Branch Ref"
-                                UploadPhase.FAILED -> "Upload Failed"
-                                else -> "Processing..."
-                            },
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = if (uploadProgress.phase == UploadPhase.FAILED) GitRed else MaterialTheme.colorScheme.onSurface
-                        )
-
-                        if (uploadProgress.phase != UploadPhase.FAILED) {
-                            Text(
-                                text = "${(uploadProgress.percent * 100).toInt()}%",
-                                fontWeight = FontWeight.Bold,
-                                color = GitBlue,
-                                fontSize = 13.sp
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    if (uploadProgress.phase != UploadPhase.FAILED) {
-                        LinearProgressIndicator(
-                            progress = { uploadProgress.percent },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(8.dp)
-                                .clip(RoundedCornerShape(4.dp)),
-                            color = GitGreenBright,
-                            trackColor = GitSurfaceVariant
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = uploadProgress.statusText,
-                        fontSize = 12.sp,
-                        fontFamily = FontFamily.Monospace,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            UploadWorkflowProgressBar(
+                progress = uploadProgress,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
         }
 
         // Upload Action Button

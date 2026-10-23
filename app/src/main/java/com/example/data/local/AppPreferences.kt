@@ -21,13 +21,13 @@ class AppPreferences(context: Context) {
         prefs.edit().putString("gh_token", token.trim()).apply()
     }
 
-    fun getGitHubUsername(): String = prefs.getString("gh_username", "") ?: ""
+    fun getGitHubUsername(): String = prefs.getString("gh_username", "Olajide2004") ?: "Olajide2004"
 
     fun setGitHubUsername(username: String) {
         prefs.edit().putString("gh_username", username.trim()).apply()
     }
 
-    fun getSelectedRepo(): String = prefs.getString("gh_repo", "") ?: ""
+    fun getSelectedRepo(): String = prefs.getString("gh_repo", "Gitmobile-uploader-application-") ?: "Gitmobile-uploader-application-"
 
     fun setSelectedRepo(repo: String) {
         prefs.edit().putString("gh_repo", repo.trim()).apply()
