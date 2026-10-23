@@ -6,12 +6,18 @@ A powerful Android application built with Kotlin and Jetpack Compose for committ
 
 ---
 
-## 📥 Download APK from GitHub
+## 📥 Direct APK Download
 
-1. Go to the [GitHub Actions Tab](https://github.com/Olajide2004/Gitmobile-uploader-application-/actions).
-2. Select the latest **Build & Release Android APK** workflow run.
-3. Scroll down to the **Artifacts** section and click **GitMobile-Debug-APK** to download the ready-to-install `.apk`.
-4. Alternatively, check the [Releases](https://github.com/Olajide2004/Gitmobile-uploader-application-/releases) page for published APK assets.
+* **Direct Repository APK Download**:
+  👉 [**Download GitMobile-OsunHive-v1.0.apk**](https://github.com/Olajide2004/Gitmobile-uploader-application-/raw/main/release/GitMobile-OsunHive-v1.0.apk) (Included in `/release/` folder)
+
+* **Via GitHub Actions CI/CD**:
+  1. Go to the [GitHub Actions Tab](https://github.com/Olajide2004/Gitmobile-uploader-application-/actions).
+  2. Select the latest **Build & Release Android APK** workflow run.
+  3. Scroll down to **Artifacts** and click **GitMobile-Debug-APK**.
+
+* **Via GitHub Releases**:
+  Check the [Releases](https://github.com/Olajide2004/Gitmobile-uploader-application-/releases) tab.
 
 ---
 
