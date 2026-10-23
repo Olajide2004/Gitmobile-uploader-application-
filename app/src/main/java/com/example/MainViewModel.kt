@@ -114,17 +114,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val uiNotification: StateFlow<UiNotification?> = _uiNotification.asStateFlow()
 
     init {
-        // Initialize with default demo folder so user can test right away
-        loadPresetDemoFolder("WebStarter")
+        try {
+            // Initialize with default demo folder so user can test right away
+            loadPresetDemoFolder("WebStarter")
 
-        // Auto-verify if token already saved
-        if (_githubToken.value.isNotBlank()) {
-            verifyToken()
-        }
+            // Auto-verify if token already saved
+            if (_githubToken.value.isNotBlank()) {
+                verifyToken()
+            }
 
-        // Fetch RSS news feed
-        viewModelScope.launch {
-            rssRepository.fetchFeed()
+            // Fetch RSS news feed
+            viewModelScope.launch {
+                try {
+                    rssRepository.fetchFeed()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 

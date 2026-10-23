@@ -106,9 +106,7 @@ interface GitHubApiService {
                 .writeTimeout(60, TimeUnit.SECONDS)
                 .build()
 
-            val moshi = com.squareup.moshi.Moshi.Builder()
-                .add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory())
-                .build()
+            val moshi = com.squareup.moshi.Moshi.Builder().build()
 
             return Retrofit.Builder()
                 .baseUrl(BASE_URL)

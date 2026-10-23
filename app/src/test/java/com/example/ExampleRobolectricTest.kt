@@ -66,4 +66,14 @@ class ExampleRobolectricTest {
         assertTrue(adManager.availableAds.isNotEmpty())
         assertEquals("https://www.osunhive.name.ng", adManager.availableAds.first().targetUrl)
     }
+
+    @Test
+    fun `create MainViewModel instance successfully`() {
+        val application = ApplicationProvider.getApplicationContext<android.app.Application>()
+        val viewModel = MainViewModel(application)
+        assertNotNull(viewModel)
+        assertEquals(AppTab.UPLOAD, viewModel.currentTab.value)
+        assertEquals("Olajide2004", viewModel.githubUsername.value)
+        assertEquals("Gitmobile-uploader-application-", viewModel.selectedRepo.value)
+    }
 }

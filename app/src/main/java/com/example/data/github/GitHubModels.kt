@@ -144,6 +144,7 @@ data class FolderFileItem(
     val rawBytes: ByteArray? = null
 )
 
+@JsonClass(generateAdapter = true)
 data class UploadHistoryItem(
     val id: String,
     val repo: String,

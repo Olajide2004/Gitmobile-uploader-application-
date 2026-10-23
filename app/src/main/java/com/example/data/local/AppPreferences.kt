@@ -4,12 +4,11 @@ import android.content.Context
 import com.example.data.github.UploadHistoryItem
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 
 class AppPreferences(context: Context) {
 
     private val prefs = context.getSharedPreferences("gitmobile_prefs", Context.MODE_PRIVATE)
-    private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+    private val moshi = Moshi.Builder().build()
 
     private val historyAdapter = moshi.adapter<List<UploadHistoryItem>>(
         Types.newParameterizedType(List::class.java, UploadHistoryItem::class.java)
