@@ -103,4 +103,16 @@ class ExampleRobolectricTest {
         assertEquals("Olajide2004", viewModel.githubUsername.value)
         assertEquals("Gitmobile-uploader-application-", viewModel.selectedRepo.value)
     }
+
+    @Test
+    fun `sanitize git path for valid tree creation`() {
+        val path1 = com.example.data.github.GitHubRepository.sanitizeGitPath("/", "/sub/file.txt")
+        assertEquals("sub/file.txt", path1)
+
+        val path2 = com.example.data.github.GitHubRepository.sanitizeGitPath("src/assets/", "css//main.css")
+        assertEquals("src/assets/css/main.css", path2)
+
+        val path3 = com.example.data.github.GitHubRepository.sanitizeGitPath("", "\\docs\\guide.md")
+        assertEquals("docs/guide.md", path3)
+    }
 }

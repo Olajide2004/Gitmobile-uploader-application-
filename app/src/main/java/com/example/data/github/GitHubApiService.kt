@@ -91,6 +91,14 @@ interface GitHubApiService {
         @Body request: UpdateRefRequest
     ): Response<GitRefResponse>
 
+    @POST("repos/{owner}/{repo}/git/refs")
+    suspend fun createRef(
+        @Header("Authorization") authHeader: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Body request: CreateRefRequest
+    ): Response<GitRefResponse>
+
     companion object {
         private const val BASE_URL = "https://api.github.com/"
 

@@ -156,36 +156,32 @@ class GitHubRepository(
         val totalFiles = files.size
 
         try {
-            // 1. Get branch head commit SHA
+            // 1. Check branch head commit SHA (handle empty or new repos gracefully)
             _uploadProgress.value = UploadProgress(
                 phase = UploadPhase.SCANNING_FOLDER,
-                statusText = "Checking branch $branch ref..."
+                statusText = "Checking branch $branch in $owner/$repo..."
             )
 
+            var parentCommitSha: String? = null
+            var baseTreeSha: String? = null
+
             val branchRefResp = apiService.getBranchRef(auth, owner, repo, branch)
-            if (!branchRefResp.isSuccessful || branchRefResp.body() == null) {
-                val err = branchRefResp.errorBody()?.string() ?: "Branch $branch not found in $owner/$repo"
-                _uploadProgress.value = UploadProgress(phase = UploadPhase.FAILED, statusText = err)
-                return@withContext Result.failure(Exception(err))
+            if (branchRefResp.isSuccessful && branchRefResp.body() != null) {
+                parentCommitSha = branchRefResp.body()!!.gitObject.sha
+
+                // Get base tree SHA from parent commit
+                val commitDetailsResp = apiService.getCommitDetails(auth, owner, repo, parentCommitSha)
+                if (commitDetailsResp.isSuccessful && commitDetailsResp.body() != null) {
+                    baseTreeSha = commitDetailsResp.body()!!.tree.sha
+                }
             }
 
-            val parentCommitSha = branchRefResp.body()!!.gitObject.sha
-
-            // 2. Get tree SHA of parent commit
-            val commitDetailsResp = apiService.getCommitDetails(auth, owner, repo, parentCommitSha)
-            if (!commitDetailsResp.isSuccessful || commitDetailsResp.body() == null) {
-                val err = commitDetailsResp.errorBody()?.string() ?: "Failed to get commit details"
-                _uploadProgress.value = UploadProgress(phase = UploadPhase.FAILED, statusText = err)
-                return@withContext Result.failure(Exception(err))
-            }
-            val baseTreeSha = commitDetailsResp.body()!!.tree.sha
-
-            // 3. Create Blobs for each file
+            // 2. Create Blobs for each file
             _uploadProgress.value = UploadProgress(
                 phase = UploadPhase.UPLOADING_BLOBS,
                 currentFile = 0,
                 totalFiles = totalFiles,
-                statusText = "Creating Git blobs for $totalFiles files..."
+                statusText = "Uploading blobs for $totalFiles files..."
             )
 
             val treeItems = mutableListOf<TreeItemRequest>()
@@ -193,44 +189,54 @@ class GitHubRepository(
             for ((index, fileItem) in files.withIndex()) {
                 val fileNum = index + 1
                 val percent = fileNum.toFloat() / totalFiles.toFloat()
+
+                // Sanitize path according to strict GitHub Git Tree rules
+                val sanitizedPath = sanitizeGitPath(cleanFolder, fileItem.relativePath)
+                if (sanitizedPath.isBlank()) continue
+
                 _uploadProgress.value = UploadProgress(
                     phase = UploadPhase.UPLOADING_BLOBS,
                     currentFile = fileNum,
                     totalFiles = totalFiles,
-                    fileName = fileItem.relativePath,
+                    fileName = sanitizedPath,
                     percent = percent,
-                    statusText = "Uploading blob ($fileNum/$totalFiles): ${fileItem.relativePath}"
+                    statusText = "Uploading blob ($fileNum/$totalFiles): $sanitizedPath"
                 )
 
                 // Read file bytes
                 val fileBytes: ByteArray = if (fileItem.rawBytes != null) {
                     fileItem.rawBytes
                 } else if (fileItem.uriString != null) {
-                    val uri = Uri.parse(fileItem.uriString)
-                    val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-                    inputStream?.use { it.readBytes() } ?: ByteArray(0)
+                    try {
+                        val uri = Uri.parse(fileItem.uriString)
+                        val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+                        inputStream?.use { it.readBytes() } ?: ByteArray(0)
+                    } catch (e: Exception) {
+                        ByteArray(0)
+                    }
                 } else {
                     ByteArray(0)
                 }
 
                 val base64Content = Base64.encodeToString(fileBytes, Base64.NO_WRAP)
-                val blobResp = apiService.createBlob(auth, owner, repo, CreateBlobRequest(content = base64Content, encoding = "base64"))
+                val blobResp = apiService.createBlob(
+                    auth,
+                    owner,
+                    repo,
+                    CreateBlobRequest(content = base64Content, encoding = "base64")
+                )
+
                 if (!blobResp.isSuccessful || blobResp.body() == null) {
-                    val err = "Failed to upload blob for ${fileItem.name}: ${blobResp.errorBody()?.string()}"
+                    val rawErr = blobResp.errorBody()?.string() ?: ""
+                    val err = "Failed to upload blob for ${fileItem.name}: ${parseGitHubError(rawErr)}"
                     _uploadProgress.value = UploadProgress(phase = UploadPhase.FAILED, statusText = err)
                     return@withContext Result.failure(Exception(err))
                 }
 
                 val blobSha = blobResp.body()!!.sha
-                val fullRepoPath = if (cleanFolder.isEmpty()) {
-                    fileItem.relativePath
-                } else {
-                    "$cleanFolder/${fileItem.relativePath}"
-                }
-
                 treeItems.add(
                     TreeItemRequest(
-                        path = fullRepoPath,
+                        path = sanitizedPath,
                         mode = "100644",
                         type = "blob",
                         sha = blobSha
@@ -238,32 +244,51 @@ class GitHubRepository(
                 )
             }
 
-            // 4. Create new Git Tree
+            if (treeItems.isEmpty()) {
+                val err = "No valid files found in selected folder to commit"
+                _uploadProgress.value = UploadProgress(phase = UploadPhase.FAILED, statusText = err)
+                return@withContext Result.failure(Exception(err))
+            }
+
+            // 3. Create new Git Tree (with automatic fallback to baseTree = null if merged tree fails)
             _uploadProgress.value = UploadProgress(
                 phase = UploadPhase.GENERATING_TREE,
                 statusText = "Creating Git Tree for ${treeItems.size} items..."
             )
 
-            val treeResp = apiService.createTree(
+            var treeResp = apiService.createTree(
                 auth,
                 owner,
                 repo,
-                CreateTreeRequest(baseTree = baseTreeSha, tree = treeItems)
+                CreateTreeRequest(baseTree = baseTreeSha?.takeIf { it.isNotBlank() }, tree = treeItems)
             )
 
+            // If tree creation with base_tree failed, retry without baseTree
+            if (!treeResp.isSuccessful && !baseTreeSha.isNullOrBlank()) {
+                treeResp = apiService.createTree(
+                    auth,
+                    owner,
+                    repo,
+                    CreateTreeRequest(baseTree = null, tree = treeItems)
+                )
+            }
+
             if (!treeResp.isSuccessful || treeResp.body() == null) {
-                val err = "Failed to create tree: ${treeResp.errorBody()?.string()}"
+                val rawErr = treeResp.errorBody()?.string() ?: ""
+                val err = "Failed to create tree: ${parseGitHubError(rawErr)}"
                 _uploadProgress.value = UploadProgress(phase = UploadPhase.FAILED, statusText = err)
                 return@withContext Result.failure(Exception(err))
             }
+
             val newTreeSha = treeResp.body()!!.sha
 
-            // 5. Create new Git Commit
+            // 4. Create new Git Commit
             _uploadProgress.value = UploadProgress(
                 phase = UploadPhase.CREATING_COMMIT,
                 statusText = "Writing commit: \"$commitMessage\"..."
             )
 
+            val parentsList = if (parentCommitSha != null) listOf(parentCommitSha) else emptyList()
             val commitResp = apiService.createCommit(
                 auth,
                 owner,
@@ -271,34 +296,48 @@ class GitHubRepository(
                 CreateCommitRequest(
                     message = commitMessage,
                     tree = newTreeSha,
-                    parents = listOf(parentCommitSha)
+                    parents = parentsList
                 )
             )
 
             if (!commitResp.isSuccessful || commitResp.body() == null) {
-                val err = "Failed to create commit: ${commitResp.errorBody()?.string()}"
+                val rawErr = commitResp.errorBody()?.string() ?: ""
+                val err = "Failed to create commit: ${parseGitHubError(rawErr)}"
                 _uploadProgress.value = UploadProgress(phase = UploadPhase.FAILED, statusText = err)
                 return@withContext Result.failure(Exception(err))
             }
+
             val newCommit = commitResp.body()!!
             val newCommitSha = newCommit.sha
 
-            // 6. Update branch head ref
+            // 5. Update or Create branch head ref
             _uploadProgress.value = UploadProgress(
                 phase = UploadPhase.UPDATING_BRANCH,
                 statusText = "Updating branch $branch to commit ${newCommitSha.take(7)}..."
             )
 
-            val updateRefResp = apiService.updateRef(
-                auth,
-                owner,
-                repo,
-                branch,
-                UpdateRefRequest(sha = newCommitSha, force = false)
-            )
+            val refSuccess = if (parentCommitSha != null) {
+                val updateResp = apiService.updateRef(
+                    auth,
+                    owner,
+                    repo,
+                    branch,
+                    UpdateRefRequest(sha = newCommitSha, force = true)
+                )
+                updateResp.isSuccessful
+            } else {
+                // Initialize branch ref on new repository
+                val createRefResp = apiService.createRef(
+                    auth,
+                    owner,
+                    repo,
+                    CreateRefRequest(ref = "refs/heads/$branch", sha = newCommitSha)
+                )
+                createRefResp.isSuccessful
+            }
 
-            if (!updateRefResp.isSuccessful) {
-                val err = "Failed to update ref: ${updateRefResp.errorBody()?.string()}"
+            if (!refSuccess) {
+                val err = "Failed to update branch $branch ref to commit ${newCommitSha.take(7)}"
                 _uploadProgress.value = UploadProgress(phase = UploadPhase.FAILED, statusText = err)
                 return@withContext Result.failure(Exception(err))
             }
@@ -339,5 +378,36 @@ class GitHubRepository(
 
     fun resetProgress() {
         _uploadProgress.value = UploadProgress(phase = UploadPhase.IDLE)
+    }
+
+    companion object {
+        fun sanitizeGitPath(folderPrefix: String, relativePath: String): String {
+            val cleanPrefix = folderPrefix.replace('\\', '/').trim().trim('/')
+            val cleanRelative = relativePath.replace('\\', '/').trim().trim('/')
+
+            val combined = if (cleanPrefix.isEmpty()) {
+                cleanRelative
+            } else if (cleanRelative.isEmpty()) {
+                cleanPrefix
+            } else {
+                "$cleanPrefix/$cleanRelative"
+            }
+
+            return combined.split('/')
+                .map { it.trim() }
+                .filter { it.isNotEmpty() && it != "." && it != ".." }
+                .joinToString("/")
+        }
+
+        fun parseGitHubError(errorJson: String): String {
+            if (errorJson.isBlank()) return "Unknown GitHub error"
+            return try {
+                val messageRegex = Regex("\"message\"\\s*:\\s*\"([^\"]+)\"")
+                val match = messageRegex.find(errorJson)
+                match?.groupValues?.getOrNull(1) ?: errorJson.take(140)
+            } catch (e: Exception) {
+                errorJson.take(140)
+            }
+        }
     }
 }

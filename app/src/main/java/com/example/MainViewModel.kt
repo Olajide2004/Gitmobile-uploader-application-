@@ -115,9 +115,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         try {
-            // Initialize with default demo folder so user can test right away
-            loadPresetDemoFolder("WebStarter")
-
             // Auto-verify if token already saved
             if (_githubToken.value.isNotBlank()) {
                 verifyToken()
@@ -256,67 +253,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val pathSegments = treeUri.lastPathSegment?.split(":")
             _folderName.value = pathSegments?.lastOrNull() ?: "Selected Folder"
             showNotification("Scanned ${files.size} files in folder")
-        }
-    }
-
-    fun loadPresetDemoFolder(preset: String) {
-        when (preset) {
-            "WebStarter" -> {
-                _folderName.value = "my-web-assets"
-                _targetFolderPath.value = "public/assets"
-                _commitMessage.value = "Upload web assets via GitMobile"
-                _folderFiles.value = listOf(
-                    FolderFileItem(
-                        name = "index.html",
-                        relativePath = "index.html",
-                        sizeBytes = 1420,
-                        rawBytes = "<!DOCTYPE html>\n<html>\n<head><title>Osun Hive Project</title></head>\n<body><h1>Built with GitMobile & Osun Hive</h1></body></html>".toByteArray(StandardCharsets.UTF_8)
-                    ),
-                    FolderFileItem(
-                        name = "style.css",
-                        relativePath = "css/style.css",
-                        sizeBytes = 850,
-                        rawBytes = "body { background: #0d1117; color: #fff; font-family: sans-serif; }\n.hive-card { border: 1px solid #eab308; }".toByteArray(StandardCharsets.UTF_8)
-                    ),
-                    FolderFileItem(
-                        name = "app.js",
-                        relativePath = "js/app.js",
-                        sizeBytes = 1120,
-                        rawBytes = "console.log('GitMobile folder commit initialized');\nfetch('https://www.osunhive.name.ng/feed/');".toByteArray(StandardCharsets.UTF_8)
-                    ),
-                    FolderFileItem(
-                        name = "README.md",
-                        relativePath = "README.md",
-                        sizeBytes = 630,
-                        rawBytes = "# Osun Hive Connected Repo\n\nUploaded seamlessly using GitMobile Android App.\nVisit https://www.osunhive.name.ng for more updates.".toByteArray(StandardCharsets.UTF_8)
-                    )
-                )
-            }
-            "DocsFolder" -> {
-                _folderName.value = "documentation"
-                _targetFolderPath.value = "docs"
-                _commitMessage.value = "Update documentation & guides"
-                _folderFiles.value = listOf(
-                    FolderFileItem(
-                        name = "overview.md",
-                        relativePath = "overview.md",
-                        sizeBytes = 1890,
-                        rawBytes = "# System Architecture\n\nGitMobile Uploader powers direct Android-to-GitHub tree commits.".toByteArray(StandardCharsets.UTF_8)
-                    ),
-                    FolderFileItem(
-                        name = "api_reference.md",
-                        relativePath = "api/reference.md",
-                        sizeBytes = 2450,
-                        rawBytes = "# Git Data API Reference\n- Blobs: POST /repos/{owner}/{repo}/git/blobs\n- Trees: POST /repos/{owner}/{repo}/git/trees\n- Commits: POST /repos/{owner}/{repo}/git/commits".toByteArray(StandardCharsets.UTF_8)
-                    ),
-                    FolderFileItem(
-                        name = "changelog.txt",
-                        relativePath = "changelog.txt",
-                        sizeBytes = 420,
-                        rawBytes = "v1.0.0 - Initial mobile folder upload release with Osun Hive RSS & Ads integration.".toByteArray(StandardCharsets.UTF_8)
-                    )
-                )
-            }
         }
     }
 

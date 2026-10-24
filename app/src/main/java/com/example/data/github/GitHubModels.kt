@@ -115,6 +115,12 @@ data class UpdateRefRequest(
     val force: Boolean = false
 )
 
+@JsonClass(generateAdapter = true)
+data class CreateRefRequest(
+    val ref: String,
+    val sha: String
+)
+
 enum class UploadPhase {
     IDLE,
     SCANNING_FOLDER,

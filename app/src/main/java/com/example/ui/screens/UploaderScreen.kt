@@ -508,42 +508,6 @@ fun UploaderScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // Presets chips for quick testing
-                Text(
-                    text = "Or quick-load sample project folders:",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    FilterChip(
-                        selected = folderName == "my-web-assets",
-                        onClick = { viewModel.loadPresetDemoFolder("WebStarter") },
-                        label = { Text("🌐 Web Starter (4 files)", fontSize = 11.sp) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = GitBlue.copy(alpha = 0.2f),
-                            selectedLabelColor = GitBlue
-                        )
-                    )
-
-                    FilterChip(
-                        selected = folderName == "documentation",
-                        onClick = { viewModel.loadPresetDemoFolder("DocsFolder") },
-                        label = { Text("📄 Docs Folder (3 files)", fontSize = 11.sp) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = GitGreen.copy(alpha = 0.2f),
-                            selectedLabelColor = GitGreen
-                        )
-                    )
-                }
-
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Folder Preview
