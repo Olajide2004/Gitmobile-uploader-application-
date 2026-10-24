@@ -96,6 +96,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _folderFiles = MutableStateFlow<List<FolderFileItem>>(emptyList())
     val folderFiles: StateFlow<List<FolderFileItem>> = _folderFiles.asStateFlow()
 
+    // Fast Scanning & Optimization Controls
+    private val _isScanningFolder = MutableStateFlow(false)
+    val isScanningFolder: StateFlow<Boolean> = _isScanningFolder.asStateFlow()
+
+    private val _ignoreBuildDirs = MutableStateFlow(true)
+    val ignoreBuildDirs: StateFlow<Boolean> = _ignoreBuildDirs.asStateFlow()
+
     // Upload Execution
     val uploadProgress: StateFlow<UploadProgress> = githubRepository.uploadProgress
 
@@ -245,14 +252,30 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun setIgnoreBuildDirs(enabled: Boolean) {
+        _ignoreBuildDirs.value = enabled
+        _selectedFolderUri.value?.let { onFolderSelected(it) }
+    }
+
+    fun toggleIgnoreBuildDirs() {
+        setIgnoreBuildDirs(!_ignoreBuildDirs.value)
+    }
+
     fun onFolderSelected(treeUri: Uri) {
         _selectedFolderUri.value = treeUri
         viewModelScope.launch {
-            val files = githubRepository.scanDocumentTree(treeUri)
-            _folderFiles.value = files
-            val pathSegments = treeUri.lastPathSegment?.split(":")
-            _folderName.value = pathSegments?.lastOrNull() ?: "Selected Folder"
-            showNotification("Scanned ${files.size} files in folder")
+            _isScanningFolder.value = true
+            try {
+                val files = githubRepository.scanDocumentTree(treeUri, _ignoreBuildDirs.value)
+                _folderFiles.value = files
+                val pathSegments = treeUri.lastPathSegment?.split(":")
+                _folderName.value = pathSegments?.lastOrNull() ?: "Selected Folder"
+                showNotification("Scanned ${files.size} files ready for upload")
+            } catch (e: Exception) {
+                showNotification("Failed to scan folder: ${e.localizedMessage}", isError = true)
+            } finally {
+                _isScanningFolder.value = false
+            }
         }
     }
 

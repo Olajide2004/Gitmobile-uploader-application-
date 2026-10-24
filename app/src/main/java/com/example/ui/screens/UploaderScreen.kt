@@ -28,6 +28,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Commit
@@ -115,6 +116,8 @@ fun UploaderScreen(
 
     val folderName by viewModel.folderName.collectAsState()
     val folderFiles by viewModel.folderFiles.collectAsState()
+    val isScanningFolder by viewModel.isScanningFolder.collectAsState()
+    val ignoreBuildDirs by viewModel.ignoreBuildDirs.collectAsState()
     val uploadProgress by viewModel.uploadProgress.collectAsState()
     val lastSuccess by viewModel.lastUploadSuccess.collectAsState()
 
@@ -508,10 +511,84 @@ fun UploaderScreen(
                     }
                 }
 
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Fast Mode Toggle & Optimization Indicator
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    FilterChip(
+                        selected = ignoreBuildDirs,
+                        onClick = { viewModel.toggleIgnoreBuildDirs() },
+                        label = {
+                            Text(
+                                if (ignoreBuildDirs) "Fast Mode (Skip .git & build caches)" else "All files (No filters)",
+                                fontSize = 11.sp
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Bolt,
+                                contentDescription = null,
+                                tint = if (ignoreBuildDirs) HiveGold else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = HiveGold.copy(alpha = 0.15f),
+                            selectedLabelColor = HiveGold
+                        )
+                    )
+
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = GitGreen.copy(alpha = 0.15f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, GitGreenBright.copy(alpha = 0.3f))
+                    ) {
+                        Text(
+                            text = "6x Multi-Stream",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = GitGreenBright,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Folder Preview
-                if (folderFiles.isNotEmpty()) {
+                // Folder Scanning or Preview Tree
+                if (isScanningFolder) {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        color = GitSurfaceVariant,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, GitBlue.copy(alpha = 0.4f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = GitBlue,
+                                strokeWidth = 2.5.dp
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = "Scanning folder structure...",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                } else if (folderFiles.isNotEmpty()) {
                     FolderPreviewTree(
                         folderName = folderName,
                         files = folderFiles
@@ -543,7 +620,7 @@ fun UploaderScreen(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "Tap 'Pick Device Folder' to choose any directory from storage, or tap a preset above.",
+                                text = "Tap 'Pick Device Folder' to choose any project directory from your device storage.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center

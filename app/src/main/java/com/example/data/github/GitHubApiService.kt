@@ -107,7 +107,14 @@ interface GitHubApiService {
                 level = HttpLoggingInterceptor.Level.BASIC
             }
 
+            val dispatcher = okhttp3.Dispatcher().apply {
+                maxRequests = 32
+                maxRequestsPerHost = 16
+            }
+
             val client = OkHttpClient.Builder()
+                .dispatcher(dispatcher)
+                .connectionPool(okhttp3.ConnectionPool(16, 5, TimeUnit.MINUTES))
                 .addInterceptor(logging)
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(60, TimeUnit.SECONDS)

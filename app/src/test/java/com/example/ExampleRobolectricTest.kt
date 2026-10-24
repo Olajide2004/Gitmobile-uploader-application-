@@ -115,4 +115,22 @@ class ExampleRobolectricTest {
         val path3 = com.example.data.github.GitHubRepository.sanitizeGitPath("", "\\docs\\guide.md")
         assertEquals("docs/guide.md", path3)
     }
+
+    @Test
+    fun `compute git blob sha matches native git standard`() {
+        val emptySha = com.example.data.github.GitHubRepository.computeGitBlobSha(ByteArray(0))
+        assertEquals("e69de29bb2d1d6434b8b29ae775ad8c2e48c5391", emptySha)
+
+        val helloSha = com.example.data.github.GitHubRepository.computeGitBlobSha("hello world\n".toByteArray(Charsets.UTF_8))
+        assertEquals("3b18e512dba79e4c8300dd08aeb37f8e728b8dad", helloSha)
+    }
+
+    @Test
+    fun `default ignored dirs protects against slow scans`() {
+        val ignored = com.example.data.github.GitHubRepository.DEFAULT_IGNORED_DIRS
+        assertTrue(ignored.contains(".git"))
+        assertTrue(ignored.contains("node_modules"))
+        assertTrue(ignored.contains("build"))
+        assertTrue(ignored.contains(".gradle"))
+    }
 }
