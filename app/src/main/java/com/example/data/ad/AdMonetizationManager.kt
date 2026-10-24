@@ -110,14 +110,7 @@ class AdMonetizationManager(private val context: Context) {
     }
 
     fun openUrl(url: String) {
-        try {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-            context.startActivity(intent)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        com.example.util.ChromeTabHelper.openUrl(context, url)
     }
 
     private fun loadStats(): MonetizationStats {

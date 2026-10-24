@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -96,6 +97,23 @@ fun RssFeedScreen(
                     fontWeight = FontWeight.Medium,
                     color = HiveAmber
                 )
+            }
+
+            Button(
+                onClick = {
+                    viewModel.showRewardedAd(
+                        url = "https://www.osunhive.name.ng",
+                        title = "Osun Hive Rewarded Ad"
+                    )
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = HiveGold, contentColor = Color.Black),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.height(32.dp),
+                contentPadding = PaddingValues(horizontal = 10.dp)
+            ) {
+                Icon(imageVector = Icons.Default.Star, contentDescription = null, modifier = Modifier.size(14.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("Reward Ad", fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
         }
 

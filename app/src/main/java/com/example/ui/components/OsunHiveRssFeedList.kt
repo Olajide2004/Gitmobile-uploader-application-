@@ -246,10 +246,7 @@ fun OsunHiveRssFeedComponent(
                                 onRead = { activeArticleModal = article },
                                 onToggleBookmark = { onToggleBookmark(article.id) },
                                 onOpenWeb = {
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(article.link)).apply {
-                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                                    }
-                                    context.startActivity(intent)
+                                    com.example.util.ChromeTabHelper.openUrl(context, article.link)
                                 }
                             )
                         }
@@ -318,10 +315,7 @@ fun OsunHiveRssFeedComponent(
             confirmButton = {
                 Button(
                     onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(article.link)).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        }
-                        context.startActivity(intent)
+                        com.example.util.ChromeTabHelper.openUrl(context, article.link)
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = HiveGold,

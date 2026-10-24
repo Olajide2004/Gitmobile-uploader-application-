@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,7 @@ import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Source
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
@@ -120,6 +122,7 @@ fun UploaderScreen(
     val ignoreBuildDirs by viewModel.ignoreBuildDirs.collectAsState()
     val uploadProgress by viewModel.uploadProgress.collectAsState()
     val lastSuccess by viewModel.lastUploadSuccess.collectAsState()
+    val isRewardBoostActive by viewModel.isRewardBoostActive.collectAsState()
 
     var showTokenPassword by remember { mutableStateOf(false) }
 
@@ -140,38 +143,23 @@ fun UploaderScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // App Title Banner
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("upload_header_banner")
         ) {
-            Column {
-                Text(
-                    text = "GitMobile Uploader",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "Fast mobile folder commits to GitHub via Git Trees API",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = GitBlue.copy(alpha = 0.15f),
-                border = androidx.compose.foundation.BorderStroke(1.dp, GitBlue.copy(alpha = 0.3f))
-            ) {
-                Text(
-                    text = "Git Trees API",
-                    fontSize = 11.sp,
-                    color = GitBlue,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                )
-            }
+            Text(
+                text = "GitMobile Uploader",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Fast mobile folder commits and uploads to GitHub",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
 
         // Section 1: GitHub Authentication Card
@@ -544,16 +532,38 @@ fun UploaderScreen(
 
                     Surface(
                         shape = RoundedCornerShape(6.dp),
-                        color = GitGreen.copy(alpha = 0.15f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, GitGreenBright.copy(alpha = 0.3f))
+                        color = if (isRewardBoostActive) HiveGold.copy(alpha = 0.2f) else GitGreen.copy(alpha = 0.15f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, if (isRewardBoostActive) HiveGold else GitGreenBright.copy(alpha = 0.3f)),
+                        modifier = Modifier
+                            .clickable {
+                                viewModel.showRewardedAd(
+                                    url = "https://www.osunhive.name.ng",
+                                    title = "Osun Hive Rewarded Speed Boost",
+                                    onReward = {
+                                        viewModel.setIgnoreBuildDirs(true)
+                                    }
+                                )
+                            }
+                            .testTag("reward_boost_chip")
                     ) {
-                        Text(
-                            text = "6x Multi-Stream",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = GitGreenBright,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = if (isRewardBoostActive) Icons.Default.Star else Icons.Default.Bolt,
+                                contentDescription = null,
+                                tint = if (isRewardBoostActive) HiveGold else GitGreenBright,
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text(
+                                text = if (isRewardBoostActive) "VIP Boost Active" else "Reward Boost (Ad)",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isRewardBoostActive) HiveGold else GitGreenBright
+                            )
+                        }
                     }
                 }
 
@@ -632,11 +642,17 @@ fun UploaderScreen(
         }
 
         // Section 4: Upload Progress Bar & Workflow Status
-        val isUploading = uploadProgress.phase != UploadPhase.IDLE && uploadProgress.phase != UploadPhase.COMPLETED
-        AnimatedVisibility(visible = isUploading) {
+        val isUploading = uploadProgress.phase != UploadPhase.IDLE && 
+                          uploadProgress.phase != UploadPhase.COMPLETED && 
+                          uploadProgress.phase != UploadPhase.FAILED
+        val showProgress = uploadProgress.phase != UploadPhase.IDLE && 
+                           uploadProgress.phase != UploadPhase.COMPLETED
+
+        AnimatedVisibility(visible = showProgress) {
             UploadWorkflowProgressBar(
                 progress = uploadProgress,
-                modifier = Modifier.padding(vertical = 4.dp)
+                modifier = Modifier.padding(vertical = 4.dp),
+                onDismissError = { viewModel.resetUploadProgress() }
             )
         }
 
@@ -732,10 +748,7 @@ fun UploaderScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(success.url)).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        }
-                        context.startActivity(intent)
+                        com.example.util.ChromeTabHelper.openUrl(context, success.url)
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = GitBlue,
@@ -752,7 +765,13 @@ fun UploaderScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.dismissLastUploadSuccess() }) {
+                TextButton(onClick = {
+                    viewModel.dismissLastUploadSuccess()
+                    viewModel.showInterstitialAd(
+                        url = "https://www.osunhive.name.ng",
+                        title = "Osun Hive Sponsor"
+                    )
+                }) {
                     Text("Done")
                 }
             }

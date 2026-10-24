@@ -148,10 +148,7 @@ fun HistoryScreen(
                     HistoryCard(
                         item = item,
                         onOpenUrl = {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(item.url)).apply {
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                            }
-                            context.startActivity(intent)
+                            com.example.util.ChromeTabHelper.openUrl(context, item.url)
                         }
                     )
                 }

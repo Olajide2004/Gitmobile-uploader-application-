@@ -217,10 +217,7 @@ fun RepositoriesScreen(
                         },
                         onOpenWeb = {
                             val url = repo.htmlUrl ?: "https://github.com/${repo.fullName}"
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                            }
-                            context.startActivity(intent)
+                            com.example.util.ChromeTabHelper.openUrl(context, url)
                         }
                     )
                 }

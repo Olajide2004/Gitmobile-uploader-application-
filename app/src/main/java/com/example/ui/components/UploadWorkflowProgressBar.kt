@@ -66,7 +66,8 @@ import com.example.ui.theme.HiveGold
 @Composable
 fun UploadWorkflowProgressBar(
     progress: UploadProgress,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onDismissError: (() -> Unit)? = null
 ) {
     val isFailed = progress.phase == UploadPhase.FAILED
     val isCompleted = progress.phase == UploadPhase.COMPLETED
@@ -288,6 +289,20 @@ fun UploadWorkflowProgressBar(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
+            }
+
+            if (isFailed && onDismissError != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    androidx.compose.material3.TextButton(
+                        onClick = onDismissError
+                    ) {
+                        Text("Dismiss & Try Again", color = GitRed, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
             }
         }
     }

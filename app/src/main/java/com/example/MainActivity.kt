@@ -23,12 +23,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.MonetizationOn
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.RssFeed
 import androidx.compose.material.icons.outlined.Book
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.MonetizationOn
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.RssFeed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -51,8 +51,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.components.OsunHiveStickyBanner
+import com.example.ui.components.OsunHiveWebsiteAdDialog
+import com.example.ui.screens.ChromeTabScreen
 import com.example.ui.screens.HistoryScreen
-import com.example.ui.screens.MonetizationScreen
 import com.example.ui.screens.RepositoriesScreen
 import com.example.ui.screens.RssFeedScreen
 import com.example.ui.screens.UploaderScreen
@@ -83,6 +84,7 @@ class MainActivity : ComponentActivity() {
 fun GitMobileApp(viewModel: MainViewModel) {
     val currentTab by viewModel.currentTab.collectAsState()
     val uiNotification by viewModel.uiNotification.collectAsState()
+    val websiteAdState by viewModel.websiteAdState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Handle back button: return to UPLOAD tab if on another tab
@@ -182,6 +184,26 @@ fun GitMobileApp(viewModel: MainViewModel) {
                     )
 
                     NavigationBarItem(
+                        selected = currentTab == AppTab.CHROME_TAB,
+                        onClick = { viewModel.setTab(AppTab.CHROME_TAB) },
+                        icon = {
+                            Icon(
+                                imageVector = if (currentTab == AppTab.CHROME_TAB) Icons.Filled.Language else Icons.Outlined.Language,
+                                contentDescription = "Chrome Tab"
+                            )
+                        },
+                        label = { Text("Chrome", fontSize = 10.sp, fontWeight = FontWeight.Medium) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = GitBlue,
+                            selectedTextColor = GitBlue,
+                            indicatorColor = GitBlue.copy(alpha = 0.2f),
+                            unselectedIconColor = Color(0xFF8B949E),
+                            unselectedTextColor = Color(0xFF8B949E)
+                        ),
+                        modifier = Modifier.testTag("nav_item_chrome")
+                    )
+
+                    NavigationBarItem(
                         selected = currentTab == AppTab.HISTORY,
                         onClick = { viewModel.setTab(AppTab.HISTORY) },
                         icon = {
@@ -190,7 +212,7 @@ fun GitMobileApp(viewModel: MainViewModel) {
                                 contentDescription = "History"
                             )
                         },
-                        label = { Text("History", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
+                        label = { Text("History", fontSize = 10.sp, fontWeight = FontWeight.Medium) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = GitBlue,
                             selectedTextColor = GitBlue,
@@ -199,26 +221,6 @@ fun GitMobileApp(viewModel: MainViewModel) {
                             unselectedTextColor = Color(0xFF8B949E)
                         ),
                         modifier = Modifier.testTag("nav_item_history")
-                    )
-
-                    NavigationBarItem(
-                        selected = currentTab == AppTab.MONETIZATION,
-                        onClick = { viewModel.setTab(AppTab.MONETIZATION) },
-                        icon = {
-                            Icon(
-                                imageVector = if (currentTab == AppTab.MONETIZATION) Icons.Filled.MonetizationOn else Icons.Outlined.MonetizationOn,
-                                contentDescription = "Monetization Ads"
-                            )
-                        },
-                        label = { Text("Ads", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = HiveGold,
-                            selectedTextColor = HiveGold,
-                            indicatorColor = HiveGold.copy(alpha = 0.2f),
-                            unselectedIconColor = Color(0xFF8B949E),
-                            unselectedTextColor = Color(0xFF8B949E)
-                        ),
-                        modifier = Modifier.testTag("nav_item_ads")
                     )
                 }
             }
@@ -237,11 +239,17 @@ fun GitMobileApp(viewModel: MainViewModel) {
                 when (tab) {
                     AppTab.UPLOAD -> UploaderScreen(viewModel = viewModel)
                     AppTab.REPOSITORIES -> RepositoriesScreen(viewModel = viewModel)
+                    AppTab.CHROME_TAB -> ChromeTabScreen(viewModel = viewModel)
                     AppTab.RSS_FEED -> RssFeedScreen(viewModel = viewModel)
                     AppTab.HISTORY -> HistoryScreen(viewModel = viewModel)
-                    AppTab.MONETIZATION -> MonetizationScreen(viewModel = viewModel)
                 }
             }
+
+            // Global Website View Dialog (Interstitial & Rewarded ads with timer & AdSense)
+            OsunHiveWebsiteAdDialog(
+                adState = websiteAdState,
+                onDismiss = { viewModel.dismissWebsiteAd() }
+            )
         }
     }
 }

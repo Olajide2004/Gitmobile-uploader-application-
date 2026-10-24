@@ -28,9 +28,23 @@ enum class AppTab {
     UPLOAD,
     REPOSITORIES,
     RSS_FEED,
-    HISTORY,
-    MONETIZATION
+    CHROME_TAB,
+    HISTORY
 }
+
+enum class WebsiteAdMode {
+    INTERSTITIAL,
+    REWARDED
+}
+
+data class WebsiteAdState(
+    val isVisible: Boolean = false,
+    val mode: WebsiteAdMode = WebsiteAdMode.INTERSTITIAL,
+    val url: String = "https://www.osunhive.name.ng",
+    val title: String = "Osun Hive Sponsor",
+    val requiredDurationSeconds: Int = 5,
+    val onRewardGranted: (() -> Unit)? = null
+)
 
 data class UiNotification(
     val id: Long = System.currentTimeMillis(),
@@ -119,6 +133,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // Transient UI Notification (Snackbar/Banner)
     private val _uiNotification = MutableStateFlow<UiNotification?>(null)
     val uiNotification: StateFlow<UiNotification?> = _uiNotification.asStateFlow()
+
+    // Website View Ad Dialog (Interstitial & Rewarded with timer & AdSense)
+    private val _websiteAdState = MutableStateFlow(WebsiteAdState())
+    val websiteAdState: StateFlow<WebsiteAdState> = _websiteAdState.asStateFlow()
+
+    private val _isRewardBoostActive = MutableStateFlow(false)
+    val isRewardBoostActive: StateFlow<Boolean> = _isRewardBoostActive.asStateFlow()
 
     init {
         try {
@@ -334,6 +355,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         githubRepository.resetProgress()
     }
 
+    fun resetUploadProgress() {
+        githubRepository.resetProgress()
+    }
+
     fun refreshRssFeed() {
         viewModelScope.launch {
             rssRepository.fetchFeed(forceRefresh = true)
@@ -360,7 +385,44 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _uiNotification.value = null
     }
 
+    fun showInterstitialAd(
+        url: String = "https://www.osunhive.name.ng",
+        title: String = "Osun Hive Interstitial Sponsor"
+    ) {
+        _websiteAdState.value = WebsiteAdState(
+            isVisible = true,
+            mode = WebsiteAdMode.INTERSTITIAL,
+            url = url,
+            title = title,
+            requiredDurationSeconds = 5
+        )
+    }
+
+    fun showRewardedAd(
+        url: String = "https://www.osunhive.name.ng",
+        title: String = "Osun Hive Rewarded Ad",
+        onReward: (() -> Unit)? = null
+    ) {
+        _websiteAdState.value = WebsiteAdState(
+            isVisible = true,
+            mode = WebsiteAdMode.REWARDED,
+            url = url,
+            title = title,
+            requiredDurationSeconds = 6,
+            onRewardGranted = {
+                _isRewardBoostActive.value = true
+                onReward?.invoke()
+                showNotification("🎉 Reward Claimed: Fast Mode & VIP Speed Active!")
+            }
+        )
+    }
+
+    fun dismissWebsiteAd() {
+        _websiteAdState.value = _websiteAdState.value.copy(isVisible = false)
+    }
+
     private fun showNotification(message: String, isError: Boolean = false) {
         _uiNotification.value = UiNotification(message = message, isError = isError)
     }
 }
+
