@@ -489,8 +489,15 @@ fun UploaderScreen(
                 OutlinedTextField(
                     value = targetFolderPath,
                     onValueChange = { viewModel.updateTargetFolderPath(it) },
-                    label = { Text("Folder Path in Repo *") },
-                    placeholder = { Text("e.g. src/assets or docs or / for root") },
+                    label = { Text("Folder Path in Repo (Optional)") },
+                    placeholder = { Text("Leave empty for repo root, or e.g. src/assets") },
+                    supportingText = {
+                        Text(
+                            text = if (targetFolderPath.isBlank()) "Uploading directly to repository root" else "Target folder: $targetFolderPath",
+                            fontSize = 11.sp,
+                            color = if (targetFolderPath.isBlank()) GitGreenBright else GitBlue
+                        )
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("target_folder_path_input"),

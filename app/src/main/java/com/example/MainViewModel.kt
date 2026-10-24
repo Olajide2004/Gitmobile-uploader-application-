@@ -187,8 +187,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun updateTargetFolderPath(path: String) {
-        _targetFolderPath.value = path
-        appPreferences.setFolderPath(path)
+        val sanitized = path.trim().trim('/')
+        val finalPath = if (sanitized == "." || sanitized == "/" || sanitized == "./") "" else sanitized
+        _targetFolderPath.value = finalPath
+        appPreferences.setFolderPath(finalPath)
     }
 
     fun updateCommitMessage(msg: String) {

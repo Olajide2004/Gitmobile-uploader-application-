@@ -118,23 +118,34 @@ class GitHubRepository(
                         val name = if (nameCol >= 0) cursor.getString(nameCol) ?: "unnamed" else "unnamed"
                         val mime = if (mimeCol >= 0) cursor.getString(mimeCol) ?: "" else ""
                         val size = if (sizeCol >= 0 && !cursor.isNull(sizeCol)) cursor.getLong(sizeCol) else 0L
-                        val relativePath = if (relativeParent.isEmpty()) name else "$relativeParent/$name"
+
+                        // Clean raw name and ignore system / invalid files
+                        val cleanName = name.trim().trimEnd(' ')
+                        if (cleanName.isEmpty() || cleanName == "." || cleanName == "..") continue
+
+                        val lowerName = cleanName.lowercase().trimEnd('.', ' ')
+                        // ALWAYS skip .git directories and internal VCS metadata regardless of ignoreBuildAndHidden
+                        if (lowerName == ".git" || lowerName == "git~1" || lowerName.startsWith(".git.")) {
+                            continue
+                        }
+
+                        val relativePath = if (relativeParent.isEmpty()) cleanName else "$relativeParent/$cleanName"
 
                         if (mime == DocumentsContract.Document.MIME_TYPE_DIR) {
-                            if (ignoreBuildAndHidden && name.lowercase() in DEFAULT_IGNORED_DIRS) {
+                            if (ignoreBuildAndHidden && lowerName in DEFAULT_IGNORED_DIRS) {
                                 // Skip massive build and VCS caches (.git, node_modules, build, .gradle)
                                 continue
                             }
                             traverse(docId, relativePath)
                         } else {
-                            if (ignoreBuildAndHidden && (name in DEFAULT_IGNORED_FILES || name.startsWith("."))) {
+                            if (ignoreBuildAndHidden && (cleanName in DEFAULT_IGNORED_FILES || cleanName.startsWith("."))) {
                                 // Skip OS cache files (.DS_Store, Thumbs.db)
                                 continue
                             }
                             val fileDocUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, docId)
                             results.add(
                                 FolderFileItem(
-                                    name = name,
+                                    name = cleanName,
                                     relativePath = relativePath,
                                     sizeBytes = size,
                                     isDirectory = false,
@@ -172,7 +183,7 @@ class GitHubRepository(
         if (files.isEmpty()) return@withContext Result.failure(Exception("No files selected in folder to upload"))
 
         val auth = getAuthHeader(token)
-        val cleanFolder = targetRepoFolderPath.trim().trim('/')
+        val cleanFolder = targetRepoFolderPath.trim().trim('/').let { if (it == "." || it == "/") "" else it }
         val totalFiles = files.size
 
         try {
@@ -273,7 +284,7 @@ class GitHubRepository(
                         }
                     }
                 }
-                deferredList.awaitAll().filterNotNull()
+                deferredList.awaitAll().filterNotNull().distinctBy { it.path }
             }
 
             if (treeItems.isEmpty()) {
@@ -416,11 +427,17 @@ class GitHubRepository(
         val DEFAULT_IGNORED_DIRS = setOf(
             ".git", ".gradle", "build", "node_modules", ".idea", ".vscode",
             "__pycache__", ".dart_tool", ".next", "dist", "out", "target", "bin", "obj",
-            ".cxx", ".externalnativebuild", "deriveddata"
+            ".cxx", ".externalnativebuild", "deriveddata", ".thumbnails", ".trashed", ".pending"
         )
 
         val DEFAULT_IGNORED_FILES = setOf(
-            ".DS_Store", "Thumbs.db", "desktop.ini"
+            ".DS_Store", "Thumbs.db", "desktop.ini", ".nomedia"
+        )
+
+        private val WINDOWS_RESERVED_NAMES = setOf(
+            "con", "prn", "aux", "nul",
+            "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9",
+            "lpt1", "lpt2", "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9"
         )
 
         /**
@@ -439,22 +456,57 @@ class GitHubRepository(
             }
         }
 
+        /**
+         * Sanitizes and validates Git tree item paths according to strict Git specification:
+         * - Strips backslashes, leading/trailing slashes, and redundant separators
+         * - Strips control characters (< 32, 127) and NTFS forbidden characters
+         * - Trims leading and trailing spaces and trailing dots from each path segment
+         * - Forbids any component matching .git, git~1, or reserved device names
+         * - Returns empty string if the path is invalid, malformed, or belongs to internal Git metadata
+         */
         fun sanitizeGitPath(folderPrefix: String, relativePath: String): String {
             val cleanPrefix = folderPrefix.replace('\\', '/').trim().trim('/')
             val cleanRelative = relativePath.replace('\\', '/').trim().trim('/')
 
-            val combined = if (cleanPrefix.isEmpty()) {
+            val combined = if (cleanPrefix.isEmpty() || cleanPrefix == ".") {
                 cleanRelative
-            } else if (cleanRelative.isEmpty()) {
+            } else if (cleanRelative.isEmpty() || cleanRelative == ".") {
                 cleanPrefix
             } else {
                 "$cleanPrefix/$cleanRelative"
             }
 
-            return combined.split('/')
-                .map { it.trim() }
+            // Split and clean each segment
+            val segments = combined.split('/')
+                .map { rawSegment ->
+                    // 1. Remove control characters (code < 32 or 127) and NTFS forbidden characters
+                    var seg = rawSegment.filter { ch -> ch.code >= 32 && ch.code != 127 && ch !in ":*?\"<>|" }
+                    // 2. Trim whitespace from start and end
+                    seg = seg.trim()
+                    // 3. In Git tree specifications, a path segment cannot end with a space or trailing dot
+                    seg = seg.trimEnd(' ', '.')
+                    seg
+                }
                 .filter { it.isNotEmpty() && it != "." && it != ".." }
-                .joinToString("/")
+
+            if (segments.isEmpty()) return ""
+
+            // Validate segments according to Git tree rules
+            for (seg in segments) {
+                val lower = seg.lowercase()
+                // Git strictly prohibits any component matching .git or ntfs dotgit variants
+                val dotGitCleaned = lower.trimEnd('.', ' ')
+                if (dotGitCleaned == ".git" || dotGitCleaned == "git~1") {
+                    return ""
+                }
+                // Check for reserved Windows device names that break Git server-side validation
+                val base = lower.substringBefore('.')
+                if (WINDOWS_RESERVED_NAMES.contains(base)) {
+                    return ""
+                }
+            }
+
+            return segments.joinToString("/")
         }
 
         fun parseGitHubError(errorJson: String): String {
@@ -462,7 +514,12 @@ class GitHubRepository(
             return try {
                 val messageRegex = Regex("\"message\"\\s*:\\s*\"([^\"]+)\"")
                 val match = messageRegex.find(errorJson)
-                match?.groupValues?.getOrNull(1) ?: errorJson.take(140)
+                val msg = match?.groupValues?.getOrNull(1) ?: errorJson.take(140)
+                if (msg.contains("malformed path component", ignoreCase = true)) {
+                    "$msg. Tip: Ensure the repository folder path is empty or a clean relative path (without leading slashes or .git)."
+                } else {
+                    msg
+                }
             } catch (e: Exception) {
                 errorJson.take(140)
             }

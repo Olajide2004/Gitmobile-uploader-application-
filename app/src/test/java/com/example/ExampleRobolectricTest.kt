@@ -114,6 +114,14 @@ class ExampleRobolectricTest {
 
         val path3 = com.example.data.github.GitHubRepository.sanitizeGitPath("", "\\docs\\guide.md")
         assertEquals("docs/guide.md", path3)
+
+        // Reject .git internal files
+        val gitInternal = com.example.data.github.GitHubRepository.sanitizeGitPath("", ".git/config")
+        assertEquals("", gitInternal)
+
+        // Trailing spaces and dots trimmed
+        val trimmed = com.example.data.github.GitHubRepository.sanitizeGitPath("", "images /photo.jpg ")
+        assertEquals("images/photo.jpg", trimmed)
     }
 
     @Test
