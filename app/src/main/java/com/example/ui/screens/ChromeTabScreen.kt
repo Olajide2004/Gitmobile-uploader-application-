@@ -89,10 +89,17 @@ fun ChromeTabScreen(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-    var inputUrl by remember { mutableStateOf("https://github.com") }
+    var inputUrl by remember { mutableStateOf("https://www.osunhive.name.ng") }
 
     val bookmarks = remember {
         listOf(
+            QuickBookmark(
+                title = "Osunhive Technology",
+                description = "Official tech platform, news & community",
+                url = "https://www.osunhive.name.ng",
+                icon = Icons.Default.Language,
+                color = HiveGold
+            ),
             QuickBookmark(
                 title = "GitHub",
                 description = "Explore repositories & activity",
@@ -106,13 +113,6 @@ fun ChromeTabScreen(
                 url = "https://github.com/settings/tokens",
                 icon = Icons.Default.VpnKey,
                 color = HiveGold
-            ),
-            QuickBookmark(
-                title = "Osun Hive News",
-                description = "Official tech news and community updates",
-                url = "https://www.osunhive.name.ng",
-                icon = Icons.Default.RssFeed,
-                color = GitGreenBright
             ),
             QuickBookmark(
                 title = "GitHub REST API Docs",
@@ -142,7 +142,7 @@ fun ChromeTabScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .testTag("chrome_tab_header")
+                .testTag("osunhive_tab_header")
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -152,26 +152,26 @@ fun ChromeTabScreen(
                     modifier = Modifier
                         .size(36.dp)
                         .clip(CircleShape)
-                        .background(GitBlue.copy(alpha = 0.2f)),
+                        .background(HiveGold.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Language,
-                        contentDescription = "Chrome Tab",
-                        tint = GitBlue,
+                        contentDescription = "Osunhive Web",
+                        tint = HiveGold,
                         modifier = Modifier.size(22.dp)
                     )
                 }
 
                 Column {
                     Text(
-                        text = "Chrome Browser Tab",
+                        text = "Osunhive Web Browser",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "High-speed in-app Chrome Custom Tab web browsing",
+                        text = "High-speed in-app web browsing powered by Osunhive Technology",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -201,17 +201,17 @@ fun ChromeTabScreen(
                 OutlinedTextField(
                     value = inputUrl,
                     onValueChange = { inputUrl = it },
-                    label = { Text("URL to open in Chrome Tab") },
-                    placeholder = { Text("https://github.com/...") },
+                    label = { Text("Web Address") },
+                    placeholder = { Text("https://www.osunhive.name.ng") },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .testTag("chrome_url_input"),
+                        .testTag("osunhive_url_input"),
                     singleLine = true,
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Public,
                             contentDescription = null,
-                            tint = GitBlue,
+                            tint = HiveGold,
                             modifier = Modifier.size(20.dp)
                         )
                     },
@@ -237,7 +237,7 @@ fun ChromeTabScreen(
                         }
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = GitBlue,
+                        focusedBorderColor = HiveGold,
                         unfocusedBorderColor = GitBorder
                     ),
                     shape = RoundedCornerShape(10.dp)
@@ -255,10 +255,10 @@ fun ChromeTabScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
-                        .testTag("open_in_chrome_button"),
+                        .testTag("open_in_osunhive_browser_button"),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = GitBlue,
-                        contentColor = Color.White
+                        containerColor = HiveGold,
+                        contentColor = Color.Black
                     ),
                     shape = RoundedCornerShape(10.dp)
                 ) {
@@ -269,7 +269,7 @@ fun ChromeTabScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Open in Chrome Tab",
+                        text = "Open with Osunhive Browser",
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
                     )
@@ -573,12 +573,12 @@ fun ChromeTabScreen(
                     Icon(
                         imageVector = Icons.Default.Security,
                         contentDescription = null,
-                        tint = GitGreenBright,
+                        tint = HiveGold,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Powered by Chrome Custom Tabs",
+                        text = "Powered by Osunhive Technology",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -586,7 +586,7 @@ fun ChromeTabScreen(
                 }
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "Chrome Custom Tabs provide seamless in-app navigation with saved passwords, autofill, dark theme integration, and high security without leaving the GitMobile app.",
+                    text = "Osunhive Technology provides high-speed, secure in-app browsing with fast rendering, saved credentials, and smooth web integration without leaving the app.",
                     fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 16.sp

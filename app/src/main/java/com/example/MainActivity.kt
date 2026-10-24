@@ -60,6 +60,7 @@ import com.example.ui.screens.UploaderScreen
 import com.example.ui.theme.GitBackground
 import com.example.ui.theme.GitBlue
 import com.example.ui.theme.GitGreen
+import com.example.ui.theme.GitGreenBright
 import com.example.ui.theme.GitSurface
 import com.example.ui.theme.HiveGold
 import com.example.ui.theme.MyApplicationTheme
@@ -177,14 +178,14 @@ fun GitMobileApp(viewModel: MainViewModel) {
                         icon = {
                             Icon(
                                 imageVector = if (currentTab == AppTab.RSS_FEED) Icons.Filled.RssFeed else Icons.Outlined.RssFeed,
-                                contentDescription = "Osun Hive Feed"
+                                contentDescription = "Hive News"
                             )
                         },
-                        label = { Text("Osun Hive", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
+                        label = { Text("News", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = HiveGold,
-                            selectedTextColor = HiveGold,
-                            indicatorColor = HiveGold.copy(alpha = 0.2f),
+                            selectedIconColor = GitGreenBright,
+                            selectedTextColor = GitGreenBright,
+                            indicatorColor = GitGreenBright.copy(alpha = 0.2f),
                             unselectedIconColor = Color(0xFF8B949E),
                             unselectedTextColor = Color(0xFF8B949E)
                         ),
@@ -197,14 +198,14 @@ fun GitMobileApp(viewModel: MainViewModel) {
                         icon = {
                             Icon(
                                 imageVector = if (currentTab == AppTab.CHROME_TAB) Icons.Filled.Language else Icons.Outlined.Language,
-                                contentDescription = "Chrome Tab"
+                                contentDescription = "Osunhive Web"
                             )
                         },
-                        label = { Text("Chrome", fontSize = 10.sp, fontWeight = FontWeight.Medium) },
+                        label = { Text("Osunhive", fontSize = 10.sp, fontWeight = FontWeight.Medium) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = GitBlue,
-                            selectedTextColor = GitBlue,
-                            indicatorColor = GitBlue.copy(alpha = 0.2f),
+                            selectedIconColor = HiveGold,
+                            selectedTextColor = HiveGold,
+                            indicatorColor = HiveGold.copy(alpha = 0.2f),
                             unselectedIconColor = Color(0xFF8B949E),
                             unselectedTextColor = Color(0xFF8B949E)
                         ),
