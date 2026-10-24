@@ -300,6 +300,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun rescanFolder() {
+        val uri = _selectedFolderUri.value
+        if (uri != null) {
+            onFolderSelected(uri)
+        } else {
+            showNotification("No folder selected yet. Tap 'Pick Device Folder'.")
+        }
+    }
+
     fun startFolderUpload() {
         val token = _githubToken.value.trim()
         val owner = _githubUsername.value.trim()

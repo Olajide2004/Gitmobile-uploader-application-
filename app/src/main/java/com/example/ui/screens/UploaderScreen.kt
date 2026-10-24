@@ -63,6 +63,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -118,6 +119,7 @@ fun UploaderScreen(
     val commitMessage by viewModel.commitMessage.collectAsState()
 
     val folderName by viewModel.folderName.collectAsState()
+    val selectedFolderUri by viewModel.selectedFolderUri.collectAsState()
     val folderFiles by viewModel.folderFiles.collectAsState()
     val isScanningFolder by viewModel.isScanningFolder.collectAsState()
     val ignoreBuildDirs by viewModel.ignoreBuildDirs.collectAsState()
@@ -136,13 +138,25 @@ fun UploaderScreen(
         }
     }
 
-    Column(
+    PullToRefreshBox(
+        isRefreshing = isScanningFolder,
+        onRefresh = {
+            viewModel.rescanFolder()
+            if (token.isNotBlank()) {
+                viewModel.fetchRepositories()
+            }
+        },
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .testTag("uploader_pull_to_refresh_box")
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
         // App Title Banner
         Column(
             modifier = Modifier
@@ -555,24 +569,39 @@ fun UploaderScreen(
                         )
                     }
 
-                    // Button to open Android Storage Access Framework folder picker
-                    Button(
-                        onClick = { folderPickerLauncher.launch(null) },
-                        modifier = Modifier.testTag("select_device_folder_button"),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = GitSurfaceVariant,
-                            contentColor = GitBlue
-                        ),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, GitBlue.copy(alpha = 0.5f)),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.FolderOpen,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Pick Device Folder", fontSize = 12.sp)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (selectedFolderUri != null) {
+                            IconButton(
+                                onClick = { viewModel.rescanFolder() },
+                                modifier = Modifier.testTag("refresh_folder_files_button")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Refresh,
+                                    contentDescription = "Refresh folder file list",
+                                    tint = GitBlue
+                                )
+                            }
+                        }
+
+                        // Button to open Android Storage Access Framework folder picker
+                        Button(
+                            onClick = { folderPickerLauncher.launch(null) },
+                            modifier = Modifier.testTag("select_device_folder_button"),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = GitSurfaceVariant,
+                                contentColor = GitBlue
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, GitBlue.copy(alpha = 0.5f)),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.FolderOpen,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Pick Device Folder", fontSize = 12.sp)
+                        }
                     }
                 }
 
@@ -766,6 +795,7 @@ fun UploaderScreen(
             modifier = Modifier.padding(top = 8.dp)
         )
     }
+}
 
     // Success Commit Dialog
     if (lastSuccess != null) {

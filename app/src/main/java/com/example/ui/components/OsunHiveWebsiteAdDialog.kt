@@ -526,10 +526,9 @@ fun OsunHiveWebsiteAdDialog(
                     }
 
                     // Social Channels Row
-                    Row(
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
                             text = "Connect with Osun Hive:",
@@ -538,23 +537,34 @@ fun OsunHiveWebsiteAdDialog(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
                             socialChannels.forEach { channel ->
                                 Surface(
-                                    shape = RoundedCornerShape(6.dp),
+                                    shape = RoundedCornerShape(8.dp),
                                     color = channel.badgeColor.copy(alpha = 0.15f),
                                     border = BorderStroke(1.dp, channel.badgeColor.copy(alpha = 0.35f)),
-                                    modifier = Modifier.clickable {
-                                        ChromeTabHelper.openUrl(context, channel.url)
-                                    }
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clickable {
+                                            ChromeTabHelper.openUrl(context, channel.url)
+                                        }
                                 ) {
-                                    Text(
-                                        text = channel.name,
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = channel.badgeColor,
-                                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
-                                    )
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.padding(vertical = 6.dp)
+                                    ) {
+                                        Text(
+                                            text = channel.name,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = channel.badgeColor,
+                                            maxLines = 1,
+                                            softWrap = false
+                                        )
+                                    }
                                 }
                             }
                         }

@@ -34,6 +34,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +43,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -67,6 +69,7 @@ import com.example.ui.theme.GitGreen
 import com.example.ui.theme.GitSurface
 import com.example.ui.theme.GitSurfaceVariant
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepositoriesScreen(
     viewModel: MainViewModel,
@@ -153,73 +156,74 @@ fun RepositoriesScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = GitBlue)
-            }
-        } else if (repos.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.Book,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(48.dp)
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "No Repositories Loaded",
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "Enter your GitHub PAT or username and tap Refresh to load your repositories.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 24.dp)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = { viewModel.fetchRepositories() },
-                        colors = ButtonDefaults.buttonColors(containerColor = GitBlue)
-                    ) {
-                        Text("Fetch Repositories")
+        PullToRefreshBox(
+            isRefreshing = isLoading,
+            onRefresh = { viewModel.fetchRepositories() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .testTag("repos_pull_to_refresh_box")
+        ) {
+            if (repos.isEmpty() && !isLoading) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    item {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Book,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "No Repositories Loaded",
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "Pull down to refresh or tap below to fetch repositories.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(
+                                onClick = { viewModel.fetchRepositories() },
+                                colors = ButtonDefaults.buttonColors(containerColor = GitBlue)
+                            ) {
+                                Text("Fetch Repositories")
+                            }
+                        }
                     }
                 }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(filteredRepos, key = { it.id }) { repo ->
-                    val isSelected = repo.name == selectedRepo
-                    RepoCard(
-                        repo = repo,
-                        isSelected = isSelected,
-                        onSelect = {
-                            viewModel.updateSelectedRepo(repo.name)
-                            viewModel.setTab(AppTab.UPLOAD)
-                        },
-                        onOpenWeb = {
-                            val url = repo.htmlUrl ?: "https://github.com/${repo.fullName}"
-                            com.example.util.ChromeTabHelper.openUrl(context, url)
-                        }
-                    )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(filteredRepos, key = { it.id }) { repo ->
+                        val isSelected = repo.name == selectedRepo
+                        RepoCard(
+                            repo = repo,
+                            isSelected = isSelected,
+                            onSelect = {
+                                viewModel.updateSelectedRepo(repo.name)
+                                viewModel.setTab(AppTab.UPLOAD)
+                            },
+                            onOpenWeb = {
+                                val url = repo.htmlUrl ?: "https://github.com/${repo.fullName}"
+                                com.example.util.ChromeTabHelper.openUrl(context, url)
+                            }
+                        )
+                    }
                 }
             }
         }
