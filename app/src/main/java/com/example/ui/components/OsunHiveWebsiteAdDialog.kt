@@ -1,13 +1,17 @@
 package com.example.ui.components
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
 import android.view.ViewGroup
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -29,11 +33,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.OpenInBrowser
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -58,6 +65,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -136,14 +144,14 @@ fun OsunHiveWebsiteAdDialog(
         Card(
             modifier = modifier
                 .fillMaxWidth(0.96f)
-                .fillMaxHeight(0.92f)
+                .fillMaxHeight(0.94f)
                 .testTag("osunhive_website_ad_dialog"),
             colors = CardDefaults.cardColors(containerColor = GitSurface),
             border = BorderStroke(1.5.dp, if (adState.mode == WebsiteAdMode.REWARDED) HiveGold else GitBlue),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(24.dp)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // Header Bar
+                // Header Bar - Material 3
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -154,7 +162,7 @@ fun OsunHiveWebsiteAdDialog(
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Surface(
                             shape = CircleShape,
@@ -165,15 +173,15 @@ fun OsunHiveWebsiteAdDialog(
                                 contentDescription = null,
                                 tint = if (adState.mode == WebsiteAdMode.REWARDED) HiveGold else GitBlue,
                                 modifier = Modifier
-                                    .size(28.dp)
-                                    .padding(5.dp)
+                                    .size(30.dp)
+                                    .padding(6.dp)
                             )
                         }
 
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = if (adState.mode == WebsiteAdMode.REWARDED) "Reward Ad" else "Interstitial Ad",
+                                    text = if (adState.mode == WebsiteAdMode.REWARDED) "Reward Ad" else "Website View",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -203,11 +211,11 @@ fun OsunHiveWebsiteAdDialog(
                     // Timer & Action Buttons
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         // Countdown Timer Badge
                         Surface(
-                            shape = RoundedCornerShape(8.dp),
+                            shape = RoundedCornerShape(12.dp),
                             color = if (isTimerComplete) GitGreen.copy(alpha = 0.2f) else GitBlue.copy(alpha = 0.15f),
                             border = BorderStroke(1.dp, if (isTimerComplete) GitGreenBright else GitBlue)
                         ) {
@@ -272,6 +280,94 @@ fun OsunHiveWebsiteAdDialog(
                                     MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                                 },
                                 modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
+
+                // Developer Attribution Banner - Material 3 Card
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .clickable {
+                            openEmail(context, "osunhiveteam@gmail.com")
+                        },
+                    shape = RoundedCornerShape(12.dp),
+                    color = GitSurfaceVariant,
+                    border = BorderStroke(1.dp, HiveGold.copy(alpha = 0.35f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clip(CircleShape)
+                                    .background(HiveGold.copy(alpha = 0.2f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = "Developer",
+                                    tint = HiveGold,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "Developer: Olajide Sherif Oyinlola",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        imageVector = Icons.Default.Verified,
+                                        contentDescription = "Verified",
+                                        tint = GitBlue,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                }
+
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Email,
+                                        contentDescription = null,
+                                        tint = HiveGold,
+                                        modifier = Modifier.size(11.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(3.dp))
+                                    Text(
+                                        text = "osunhiveteam@gmail.com",
+                                        fontSize = 10.sp,
+                                        color = HiveGold
+                                    )
+                                }
+                            }
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = HiveGold.copy(alpha = 0.15f),
+                            border = BorderStroke(1.dp, HiveGold.copy(alpha = 0.4f))
+                        ) {
+                            Text(
+                                text = "Contact",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = HiveGold,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
                         }
                     }
@@ -344,7 +440,7 @@ fun OsunHiveWebsiteAdDialog(
                     )
                 }
 
-                // Bottom Reward Action & Community Channels
+                // Bottom Reward Action & Community Channels - Material 3
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -367,7 +463,7 @@ fun OsunHiveWebsiteAdDialog(
                                     containerColor = HiveGold,
                                     contentColor = Color.Black
                                 ),
-                                shape = RoundedCornerShape(10.dp)
+                                shape = RoundedCornerShape(12.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.CheckCircle,
@@ -384,7 +480,7 @@ fun OsunHiveWebsiteAdDialog(
                         } else {
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(8.dp),
+                                shape = RoundedCornerShape(10.dp),
                                 color = GitSurfaceVariant,
                                 border = BorderStroke(1.dp, GitBorder)
                             ) {
@@ -421,7 +517,7 @@ fun OsunHiveWebsiteAdDialog(
                                     containerColor = GitBlue,
                                     contentColor = Color.White
                                 ),
-                                shape = RoundedCornerShape(10.dp)
+                                shape = RoundedCornerShape(12.dp)
                             ) {
                                 Text("Continue to App", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                             }
@@ -466,5 +562,18 @@ fun OsunHiveWebsiteAdDialog(
                 }
             }
         }
+    }
+}
+
+private fun openEmail(context: Context, email: String) {
+    try {
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("mailto:$email")
+            putExtra(Intent.EXTRA_SUBJECT, "GitMobile Uploader / Osun Hive Inquiry")
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        Toast.makeText(context, "Contact: $email", Toast.LENGTH_SHORT).show()
     }
 }

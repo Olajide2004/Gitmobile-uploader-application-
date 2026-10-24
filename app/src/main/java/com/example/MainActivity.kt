@@ -92,6 +92,14 @@ fun GitMobileApp(viewModel: MainViewModel) {
         viewModel.setTab(AppTab.UPLOAD)
     }
 
+    // Automatically pop up the website view dialog on startup
+    LaunchedEffect(Unit) {
+        viewModel.showInterstitialAd(
+            url = "https://www.osunhive.name.ng",
+            title = "Osun Hive • Official Website"
+        )
+    }
+
     LaunchedEffect(uiNotification) {
         uiNotification?.let { notif ->
             snackbarHostState.showSnackbar(notif.message)

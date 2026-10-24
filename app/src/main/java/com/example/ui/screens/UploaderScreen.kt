@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Source
@@ -148,18 +149,94 @@ fun UploaderScreen(
                 .fillMaxWidth()
                 .testTag("upload_header_banner")
         ) {
-            Text(
-                text = "GitMobile Uploader",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Fast mobile folder commits and uploads to GitHub",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "GitMobile Uploader",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Fast mobile folder commits and uploads to GitHub",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = HiveGold.copy(alpha = 0.15f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, HiveGold.copy(alpha = 0.4f)),
+                    modifier = Modifier
+                        .clickable {
+                            viewModel.showInterstitialAd(
+                                url = "https://www.osunhive.name.ng",
+                                title = "Osun Hive Website"
+                            )
+                        }
+                        .testTag("popup_website_header_button")
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Language,
+                            contentDescription = "Website View",
+                            tint = HiveGold,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Website",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = HiveGold
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Developer Credit Bar - Material 3
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = GitSurfaceVariant,
+                border = androidx.compose.foundation.BorderStroke(1.dp, GitBorder),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        viewModel.showInterstitialAd(
+                            url = "https://www.osunhive.name.ng",
+                            title = "Developer: Olajide Sherif Oyinlola"
+                        )
+                    }
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Developer: Olajide Sherif Oyinlola",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "osunhiveteam@gmail.com",
+                        fontSize = 10.sp,
+                        color = HiveGold
+                    )
+                }
+            }
         }
 
         // Section 1: GitHub Authentication Card
