@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "website_url": "https://www.osunhive.name.ng",
+  "reward_ad_url": "https://www.osunhive.name.ng",
+  "interstitial_ad_url": "https://www.osunhive.name.ng",
+  "announcement": "Welcome to GitMobile Uploader powered by Osunhive Technology!",
+  "social_links": {
+    "telegram": "https://t.me/Osunhive",
+    "youtube": "https://youtube.com/@osunhivetech",
+    "yofan": "https://yo.fan/osunhivetech",
+    "tiktok": "https://www.tiktok.com/@osunhive.name.ng"
+  },
+  "quick_bookmarks": [
+    {
+      "title": "Osunhive Technology",
+      "description": "Official tech platform, news & community",
+      "url": "https://www.osunhive.name.ng"
+    },
+    {
+      "title": "GitHub",
+      "description": "Explore repositories & activity",
+      "url": "https://github.com"
+    },
+    {
+      "title": "GitHub Tokens",
+      "description": "Generate or manage Personal Access Tokens",
+      "url": "https://github.com/settings/tokens"
+    },
+    {
+      "title": "GitHub REST API Docs",
+      "description": "Reference for Git Blobs, Trees, and Commits",
+      "url": "https://docs.github.com/en/rest/git"
+    },
+    {
+      "title": "Git Reference Guide",
+      "description": "Official Git documentation & syntax",
+      "url": "https://git-scm.com/docs"
+    }
+  ]
+}

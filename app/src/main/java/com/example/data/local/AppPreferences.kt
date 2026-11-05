@@ -98,4 +98,20 @@ class AppPreferences(context: Context) {
         prefs.edit().putStringSet("bookmarked_rss_ids", current).apply()
         return isNowBookmarked
     }
+
+    // Default GitHub raw JSON URL
+    fun getRemoteConfigUrl(): String = prefs.getString(
+        "remote_config_url",
+        "https://raw.githubusercontent.com/Olajide2004/Gitmobile-uploader-application-/main/remote_links_config.json"
+    ) ?: "https://raw.githubusercontent.com/Olajide2004/Gitmobile-uploader-application-/main/remote_links_config.json"
+
+    fun setRemoteConfigUrl(url: String) {
+        prefs.edit().putString("remote_config_url", url.trim()).apply()
+    }
+
+    fun getCachedRemoteConfig(): String? = prefs.getString("cached_remote_links_json", null)
+
+    fun setCachedRemoteConfig(json: String) {
+        prefs.edit().putString("cached_remote_links_json", json).apply()
+    }
 }

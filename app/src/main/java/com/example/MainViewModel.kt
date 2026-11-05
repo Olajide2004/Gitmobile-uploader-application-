@@ -60,6 +60,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val adManager = AdMonetizationManager(application)
     val githubRepository = GitHubRepository(application, apiService, appPreferences)
     val rssRepository = RssRepository(application, appPreferences, notificationHelper)
+    val remoteLinksRepository = com.example.data.remote.RemoteLinksRepository(application, appPreferences)
+
+    val remoteConfig: StateFlow<com.example.data.remote.RemoteLinksConfig> = remoteLinksRepository.config
+    val isFetchingRemoteConfig: StateFlow<Boolean> = remoteLinksRepository.isFetching
 
     // Navigation Tab
     private val _currentTab = MutableStateFlow(AppTab.UPLOAD)
@@ -152,6 +156,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope.launch {
                 try {
                     rssRepository.fetchFeed()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            // Fetch Remote Links Config (GitHub JSON)
+            viewModelScope.launch {
+                try {
+                    remoteLinksRepository.fetchRemoteConfig()
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -431,6 +444,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun dismissWebsiteAd() {
         _websiteAdState.value = _websiteAdState.value.copy(isVisible = false)
     }
+
+    fun refreshRemoteConfig(customUrl: String? = null) {
+        viewModelScope.launch {
+            val result = remoteLinksRepository.fetchRemoteConfig(customUrl)
+            result.fold(
+                onSuccess = { cfg ->
+                    showNotification("Updated remote links: ${cfg.websiteUrl}")
+                },
+                onFailure = { error ->
+                    showNotification("Failed to fetch remote links: ${error.localizedMessage}", isError = true)
+                }
+            )
+        }
+    }
+
+    fun updateRemoteConfigUrl(url: String) {
+        remoteLinksRepository.updateConfigUrl(url)
+        refreshRemoteConfig(url)
+    }
+
+    fun getRemoteConfigUrl(): String = remoteLinksRepository.getEffectiveConfigUrl()
 
     private fun showNotification(message: String, isError: Boolean = false) {
         _uiNotification.value = UiNotification(message = message, isError = isError)

@@ -255,9 +255,11 @@ fun GitMobileApp(viewModel: MainViewModel) {
             }
 
             // Global Website View Dialog (Interstitial & Rewarded ads with timer & AdSense)
+            val remoteConfig by viewModel.remoteConfig.collectAsState()
             OsunHiveWebsiteAdDialog(
                 adState = websiteAdState,
-                onDismiss = { viewModel.dismissWebsiteAd() }
+                onDismiss = { viewModel.dismissWebsiteAd() },
+                remoteSocialLinks = remoteConfig.socialLinks
             )
         }
     }

@@ -34,18 +34,25 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.VpnKey
+import androidx.compose.material.icons.filled.CloudSync
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -89,14 +96,38 @@ fun ChromeTabScreen(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-    var inputUrl by remember { mutableStateOf("https://www.osunhive.name.ng") }
+    val remoteConfig by viewModel.remoteConfig.collectAsState()
+    val isFetchingRemote by viewModel.isFetchingRemoteConfig.collectAsState()
 
-    val bookmarks = remember {
-        listOf(
+    var inputUrl by remember(remoteConfig.websiteUrl) { mutableStateOf(remoteConfig.websiteUrl) }
+    var showRemoteConfigDialog by remember { mutableStateOf(false) }
+
+    val bookmarks = remember(remoteConfig) {
+        val remoteList = remoteConfig.quickBookmarks.map { item ->
+            QuickBookmark(
+                title = item.title,
+                description = item.description,
+                url = item.url,
+                icon = when {
+                    item.title.contains("GitHub", ignoreCase = true) -> Icons.Default.Code
+                    item.title.contains("Token", ignoreCase = true) -> Icons.Default.VpnKey
+                    item.title.contains("API", ignoreCase = true) -> Icons.Default.Book
+                    item.title.contains("Git", ignoreCase = true) -> Icons.Default.Public
+                    else -> Icons.Default.Language
+                },
+                color = when {
+                    item.title.contains("Osunhive", ignoreCase = true) -> HiveGold
+                    item.title.contains("Token", ignoreCase = true) -> HiveGold
+                    item.title.contains("Git", ignoreCase = true) -> Color(0xFFF05032)
+                    else -> GitBlue
+                }
+            )
+        }
+        if (remoteList.isNotEmpty()) remoteList else listOf(
             QuickBookmark(
                 title = "Osunhive Technology",
                 description = "Official tech platform, news & community",
-                url = "https://www.osunhive.name.ng",
+                url = remoteConfig.websiteUrl,
                 icon = Icons.Default.Language,
                 color = HiveGold
             ),
@@ -145,36 +176,76 @@ fun ChromeTabScreen(
                 .testTag("osunhive_tab_header")
         ) {
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(HiveGold.copy(alpha = 0.2f)),
-                    contentAlignment = Alignment.Center
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Language,
-                        contentDescription = "Osunhive Web",
-                        tint = HiveGold,
-                        modifier = Modifier.size(22.dp)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(HiveGold.copy(alpha = 0.2f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Language,
+                            contentDescription = "Osunhive Web",
+                            tint = HiveGold,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
+                    Column {
+                        Text(
+                            text = "Osunhive Web Browser",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "High-speed in-app web browsing powered by Osunhive Technology",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
-                Column {
-                    Text(
-                        text = "Osunhive Web Browser",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "High-speed in-app web browsing powered by Osunhive Technology",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = { viewModel.refreshRemoteConfig() },
+                        enabled = !isFetchingRemote,
+                        modifier = Modifier.testTag("refresh_remote_config_button")
+                    ) {
+                        if (isFetchingRemote) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = HiveGold
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = "Sync Remote Links",
+                                tint = HiveGold
+                            )
+                        }
+                    }
+
+                    IconButton(
+                        onClick = { showRemoteConfigDialog = true },
+                        modifier = Modifier.testTag("edit_remote_config_url_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Configure Remote JSON URL",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
@@ -377,7 +448,7 @@ fun ChromeTabScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable { ChromeTabHelper.openUrl(context, "https://t.me/Osunhive") }
+                        .clickable { ChromeTabHelper.openUrl(context, remoteConfig.socialLinks.telegram) }
                         .padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -393,7 +464,7 @@ fun ChromeTabScreen(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Telegram Community", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        Text("t.me/Osunhive", fontSize = 11.sp, color = GitBlue)
+                        Text(remoteConfig.socialLinks.telegram.removePrefix("https://").removePrefix("http://"), fontSize = 11.sp, color = GitBlue)
                     }
                     Icon(imageVector = Icons.Default.Launch, contentDescription = null, tint = GitBlue, modifier = Modifier.size(16.dp))
                 }
@@ -403,7 +474,7 @@ fun ChromeTabScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable { ChromeTabHelper.openUrl(context, "https://youtube.com/@osunhivetech") }
+                        .clickable { ChromeTabHelper.openUrl(context, remoteConfig.socialLinks.youtube) }
                         .padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -419,7 +490,7 @@ fun ChromeTabScreen(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text("YouTube: osunhivetech", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        Text("youtube.com/@osunhivetech", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(remoteConfig.socialLinks.youtube.removePrefix("https://").removePrefix("http://"), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Icon(imageVector = Icons.Default.Launch, contentDescription = null, tint = GitRed, modifier = Modifier.size(16.dp))
                 }
@@ -429,7 +500,7 @@ fun ChromeTabScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable { ChromeTabHelper.openUrl(context, "https://yo.fan/osunhivetech") }
+                        .clickable { ChromeTabHelper.openUrl(context, remoteConfig.socialLinks.yofan) }
                         .padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -445,7 +516,7 @@ fun ChromeTabScreen(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Yo.fan: osunhivetech", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        Text("yo.fan/osunhivetech", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(remoteConfig.socialLinks.yofan.removePrefix("https://").removePrefix("http://"), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Icon(imageVector = Icons.Default.Launch, contentDescription = null, tint = Color(0xFFFF5722), modifier = Modifier.size(16.dp))
                 }
@@ -455,7 +526,7 @@ fun ChromeTabScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable { ChromeTabHelper.openUrl(context, "https://www.tiktok.com/@osunhive.name.ng") }
+                        .clickable { ChromeTabHelper.openUrl(context, remoteConfig.socialLinks.tiktok) }
                         .padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -471,7 +542,7 @@ fun ChromeTabScreen(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text("TikTok: osunhive.name.ng", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        Text("tiktok.com/@osunhive.name.ng", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(remoteConfig.socialLinks.tiktok.removePrefix("https://").removePrefix("http://"), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Icon(imageVector = Icons.Default.Launch, contentDescription = null, tint = Color(0xFF00F2FE), modifier = Modifier.size(16.dp))
                 }
@@ -521,7 +592,7 @@ fun ChromeTabScreen(
                     Button(
                         onClick = {
                             viewModel.showRewardedAd(
-                                url = "https://www.osunhive.name.ng",
+                                url = remoteConfig.rewardAdUrl,
                                 title = "Osun Hive Rewarded Ad"
                             )
                         },
@@ -540,7 +611,7 @@ fun ChromeTabScreen(
                     Button(
                         onClick = {
                             viewModel.showInterstitialAd(
-                                url = "https://www.osunhive.name.ng",
+                                url = remoteConfig.interstitialAdUrl,
                                 title = "Osun Hive Interstitial Ad"
                             )
                         },
@@ -593,5 +664,81 @@ fun ChromeTabScreen(
                 )
             }
         }
+    }
+
+    // Remote Links Config Dialog
+    if (showRemoteConfigDialog) {
+        var tempUrl by remember { mutableStateOf(viewModel.getRemoteConfigUrl()) }
+
+        AlertDialog(
+            onDismissRequest = { showRemoteConfigDialog = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(imageVector = Icons.Default.CloudSync, contentDescription = null, tint = HiveGold)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Remote GitHub JSON Config", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = "Manage the remote GitHub JSON link to update website URLs, bookmarks, and social channels without editing Kotlin code:",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    OutlinedTextField(
+                        value = tempUrl,
+                        onValueChange = { tempUrl = it },
+                        label = { Text("Raw GitHub JSON URL") },
+                        placeholder = { Text("https://raw.githubusercontent.com/.../remote_links_config.json") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = HiveGold,
+                            unfocusedBorderColor = GitBorder
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = GitSurfaceVariant,
+                        border = BorderStroke(1.dp, GitBorder),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(8.dp)) {
+                            Text(
+                                text = "Default repository file: /remote_links_config.json",
+                                fontSize = 11.sp,
+                                color = HiveGold,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "Edit that file on GitHub or Gist at any time, commit, and tap 'Sync' to update all links in the app instantly.",
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.updateRemoteConfigUrl(tempUrl)
+                        showRemoteConfigDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = HiveGold, contentColor = Color.Black)
+                ) {
+                    Text("Save & Sync", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showRemoteConfigDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

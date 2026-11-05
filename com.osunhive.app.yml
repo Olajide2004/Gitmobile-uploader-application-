@@ -1,0 +1,38 @@
+Categories:
+  - Development
+License: MIT
+AuthorName: Olajide Sherif Oyinlola
+AuthorEmail: osunhiveteam@gmail.com
+AuthorWebSite: https://www.osunhive.name.ng
+SourceCode: https://github.com/Olajide2004/Gitmobile-uploader-application-
+IssueTracker: https://github.com/Olajide2004/Gitmobile-uploader-application-/issues
+
+AutoName: GitMobile Uploader
+Summary: Mobile folder and file uploader for GitHub repositories
+Description: |-
+  GitMobile Uploader allows developers and content creators to commit and upload full folder
+  structures and files directly to their GitHub repositories using the GitHub Git Trees & Commits API.
+  
+  Key features:
+  * Upload complete folders using Android Storage Access Framework
+  * Real-time dual-track upload progress indicators
+  * Fast mode directory filters (.git, build, cache directories)
+  * Remote link configuration via GitHub JSON
+  * Integrated Osunhive news and tech updates
+  * Pull-to-refresh for branches, repositories, and local folders
+
+RepoType: git
+Repo: https://github.com/Olajide2004/Gitmobile-uploader-application-.git
+
+Builds:
+  - versionName: '1.0'
+    versionCode: 1
+    commit: v1.0.0
+    subdir: app
+    gradle:
+      - yes
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: '1.0'
+CurrentVersionCode: 1

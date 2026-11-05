@@ -1,0 +1,14 @@
+GitMobile Uploader
+==================
+
+GitMobile Uploader is a modern open-source Android tool for uploading, committing, and managing folders and files on GitHub directly from your mobile device.
+
+Features:
+* Traverses directories via Android Storage Access Framework
+* Uploads git blobs, creates trees, and updates branch refs via GitHub API
+* Remote JSON configuration for dynamic links
+* Pull-to-refresh on repositories and local folders
+* Powered by Osunhive Technology
+
+Source Code:
+https://github.com/Olajide2004/Gitmobile-uploader-application-

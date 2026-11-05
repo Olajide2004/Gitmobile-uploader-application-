@@ -95,7 +95,8 @@ data class SocialCommunityChannel(
 fun OsunHiveWebsiteAdDialog(
     adState: WebsiteAdState,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    remoteSocialLinks: com.example.data.remote.RemoteSocialLinks? = null
 ) {
     if (!adState.isVisible) return
 
@@ -109,12 +110,17 @@ fun OsunHiveWebsiteAdDialog(
     var isLoadingPage by remember { mutableStateOf(true) }
     var webViewInstance by remember { mutableStateOf<WebView?>(null) }
 
-    val socialChannels = remember {
+    val telegramUrl = remoteSocialLinks?.telegram ?: "https://t.me/Osunhive"
+    val youtubeUrl = remoteSocialLinks?.youtube ?: "https://youtube.com/@osunhivetech"
+    val yofanUrl = remoteSocialLinks?.yofan ?: "https://yo.fan/osunhivetech"
+    val tiktokUrl = remoteSocialLinks?.tiktok ?: "https://www.tiktok.com/@osunhive.name.ng"
+
+    val socialChannels = remember(telegramUrl, youtubeUrl, yofanUrl, tiktokUrl) {
         listOf(
-            SocialCommunityChannel("Telegram", "https://t.me/Osunhive", GitBlue),
-            SocialCommunityChannel("YouTube", "https://youtube.com/@osunhivetech", GitRed),
-            SocialCommunityChannel("Yo.fan", "https://yo.fan/osunhivetech", Color(0xFFFF5722)),
-            SocialCommunityChannel("TikTok", "https://www.tiktok.com/@osunhive.name.ng", Color(0xFF00F2FE))
+            SocialCommunityChannel("Telegram", telegramUrl, GitBlue),
+            SocialCommunityChannel("YouTube", youtubeUrl, GitRed),
+            SocialCommunityChannel("Yo.fan", yofanUrl, Color(0xFFFF5722)),
+            SocialCommunityChannel("TikTok", tiktokUrl, Color(0xFF00F2FE))
         )
     }
 
