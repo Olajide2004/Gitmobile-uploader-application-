@@ -424,30 +424,30 @@ fun ChromeTabScreen(
                     Icon(imageVector = Icons.Default.Launch, contentDescription = null, tint = GitRed, modifier = Modifier.size(16.dp))
                 }
 
-                // Instagram
+                // Yo.fan
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable { ChromeTabHelper.openUrl(context, "https://instagram.com/osunhive.olajidesherif") }
+                        .clickable { ChromeTabHelper.openUrl(context, "https://yo.fan/osunhivetech") }
                         .padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Surface(shape = CircleShape, color = Color(0xFFE1306C).copy(alpha = 0.2f)) {
+                    Surface(shape = CircleShape, color = Color(0xFFFF5722).copy(alpha = 0.2f)) {
                         Text(
-                            text = "IG",
+                            text = "YF",
                             fontWeight = FontWeight.Bold,
                             fontSize = 11.sp,
-                            color = Color(0xFFE1306C),
+                            color = Color(0xFFFF5722),
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Instagram: osunhive.olajidesherif", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        Text("instagram.com/osunhive.olajidesherif", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Yo.fan: osunhivetech", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text("yo.fan/osunhivetech", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Icon(imageVector = Icons.Default.Launch, contentDescription = null, tint = Color(0xFFE1306C), modifier = Modifier.size(16.dp))
+                    Icon(imageVector = Icons.Default.Launch, contentDescription = null, tint = Color(0xFFFF5722), modifier = Modifier.size(16.dp))
                 }
 
                 // TikTok

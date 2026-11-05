@@ -48,7 +48,7 @@
   - Developer: **Olajide Sherif Oyinlola** (`osunhiveteam@gmail.com`)
   - **Telegram**: [t.me/Osunhive](https://t.me/Osunhive)
   - **YouTube**: [@osunhivetech](https://youtube.com/@osunhivetech)
-  - **Instagram**: [@osunhive.olajidesherif](https://instagram.com/osunhive.olajidesherif)
+  - **Yo.fan**: [yo.fan/osunhivetech](https://yo.fan/osunhivetech)
   - **TikTok**: [@osunhive.name.ng](https://www.tiktok.com/@osunhive.name.ng)
 
 ---

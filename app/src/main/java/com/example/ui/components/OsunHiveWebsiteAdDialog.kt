@@ -113,7 +113,7 @@ fun OsunHiveWebsiteAdDialog(
         listOf(
             SocialCommunityChannel("Telegram", "https://t.me/Osunhive", GitBlue),
             SocialCommunityChannel("YouTube", "https://youtube.com/@osunhivetech", GitRed),
-            SocialCommunityChannel("Instagram", "https://instagram.com/osunhive.olajidesherif", Color(0xFFE1306C)),
+            SocialCommunityChannel("Yo.fan", "https://yo.fan/osunhivetech", Color(0xFFFF5722)),
             SocialCommunityChannel("TikTok", "https://www.tiktok.com/@osunhive.name.ng", Color(0xFF00F2FE))
         )
     }
