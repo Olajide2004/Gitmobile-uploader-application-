@@ -67,6 +67,7 @@ fun RssFeedScreen(
     val context = LocalContext.current
     val feedState by viewModel.rssFeedState.collectAsState()
     val isBackgroundSyncEnabled by viewModel.isRssNotificationEnabled.collectAsState()
+    val currentLoadingStyle by viewModel.m3LoadingStyle.collectAsState()
 
     var hasNotificationPermission by remember {
         mutableStateOf(viewModel.notificationHelper.hasNotificationPermission())
@@ -302,7 +303,8 @@ fun RssFeedScreen(
             feedState = feedState,
             onRefresh = { viewModel.refreshRssFeed() },
             onToggleBookmark = { viewModel.toggleBookmark(it) },
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            loadingStyle = currentLoadingStyle
         )
     }
 }

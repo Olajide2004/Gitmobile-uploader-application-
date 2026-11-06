@@ -55,11 +55,15 @@ class RssBackgroundReceiver : BroadcastReceiver() {
                 }
                 val pendingIntent = PendingIntent.getBroadcast(context, REQUEST_CODE, intent, flags)
 
-                val triggerAtMillis = System.currentTimeMillis() + (5 * 60 * 1000L) // initial check in 5 mins
+                val prefs = AppPreferences(context)
+                val intervalMins = prefs.getRssSyncIntervalMinutes().coerceAtLeast(15)
+                val intervalMillis = intervalMins * 60 * 1000L
+
+                val triggerAtMillis = System.currentTimeMillis() + (3 * 60 * 1000L) // initial check in 3 mins
                 alarmManager.setInexactRepeating(
                     AlarmManager.RTC_WAKEUP,
                     triggerAtMillis,
-                    INTERVAL_MILLIS,
+                    intervalMillis,
                     pendingIntent
                 )
             } catch (e: Exception) {

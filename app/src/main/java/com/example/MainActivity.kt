@@ -10,27 +10,37 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.RssFeed
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Book
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.RssFeed
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -38,16 +48,21 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.components.OsunHiveStickyBanner
@@ -56,8 +71,8 @@ import com.example.ui.screens.ChromeTabScreen
 import com.example.ui.screens.HistoryScreen
 import com.example.ui.screens.RepositoriesScreen
 import com.example.ui.screens.RssFeedScreen
+import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.UploaderScreen
-import com.example.ui.theme.GitBackground
 import com.example.ui.theme.GitBlue
 import com.example.ui.theme.GitGreen
 import com.example.ui.theme.GitGreenBright
@@ -79,13 +94,20 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            MyApplicationTheme {
+            val themeMode by viewModel.themeMode.collectAsState()
+            val colorPreset by viewModel.colorPreset.collectAsState()
+
+            MyApplicationTheme(
+                themeMode = themeMode,
+                colorPreset = colorPreset
+            ) {
                 GitMobileApp(viewModel = viewModel)
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GitMobileApp(viewModel: MainViewModel) {
     val currentTab by viewModel.currentTab.collectAsState()
@@ -117,8 +139,67 @@ fun GitMobileApp(viewModel: MainViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .windowInsetsPadding(WindowInsets.safeDrawing),
-        containerColor = GitBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                        ) {
+                            Text(
+                                text = "Osunhive",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = when (currentTab) {
+                                AppTab.UPLOAD -> "GitMobile Uploader"
+                                AppTab.REPOSITORIES -> "Repositories"
+                                AppTab.RSS_FEED -> "Hive News Feed"
+                                AppTab.CHROME_TAB -> "Osunhive Web"
+                                AppTab.HISTORY -> "Commit History"
+                                AppTab.SETTINGS -> "Settings & Themes"
+                            },
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            if (currentTab == AppTab.SETTINGS) {
+                                viewModel.setTab(AppTab.UPLOAD)
+                            } else {
+                                viewModel.setTab(AppTab.SETTINGS)
+                            }
+                        },
+                        modifier = Modifier.testTag("top_bar_settings_button")
+                    ) {
+                        Icon(
+                            imageVector = if (currentTab == AppTab.SETTINGS) Icons.Filled.Settings else Icons.Outlined.Settings,
+                            contentDescription = "Settings & Preferences",
+                            tint = if (currentTab == AppTab.SETTINGS) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        },
         bottomBar = {
             Column(
                 modifier = Modifier
@@ -256,6 +337,7 @@ fun GitMobileApp(viewModel: MainViewModel) {
                     AppTab.CHROME_TAB -> ChromeTabScreen(viewModel = viewModel)
                     AppTab.RSS_FEED -> RssFeedScreen(viewModel = viewModel)
                     AppTab.HISTORY -> HistoryScreen(viewModel = viewModel)
+                    AppTab.SETTINGS -> SettingsScreen(viewModel = viewModel)
                 }
             }
 

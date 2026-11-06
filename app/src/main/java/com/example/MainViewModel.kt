@@ -29,7 +29,8 @@ enum class AppTab {
     REPOSITORIES,
     RSS_FEED,
     CHROME_TAB,
-    HISTORY
+    HISTORY,
+    SETTINGS
 }
 
 enum class WebsiteAdMode {
@@ -147,6 +148,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _isRewardBoostActive = MutableStateFlow(false)
     val isRewardBoostActive: StateFlow<Boolean> = _isRewardBoostActive.asStateFlow()
+
+    // Material 3 Customization & Preferences
+    private val _themeMode = MutableStateFlow(appPreferences.getThemeMode())
+    val themeMode: StateFlow<String> = _themeMode.asStateFlow()
+
+    private val _colorPreset = MutableStateFlow(appPreferences.getColorPreset())
+    val colorPreset: StateFlow<String> = _colorPreset.asStateFlow()
+
+    private val _m3LoadingStyle = MutableStateFlow(appPreferences.getM3LoadingStyle())
+    val m3LoadingStyle: StateFlow<String> = _m3LoadingStyle.asStateFlow()
+
+    private val _rssSyncIntervalMinutes = MutableStateFlow(appPreferences.getRssSyncIntervalMinutes())
+    val rssSyncIntervalMinutes: StateFlow<Int> = _rssSyncIntervalMinutes.asStateFlow()
+
+    private val _fastUploadMode = MutableStateFlow(appPreferences.isFastUploadMode())
+    val fastUploadMode: StateFlow<Boolean> = _fastUploadMode.asStateFlow()
 
     init {
         try {
@@ -487,6 +504,42 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun getRemoteConfigUrl(): String = remoteLinksRepository.getEffectiveConfigUrl()
+
+    fun updateThemeMode(mode: String) {
+        _themeMode.value = mode
+        appPreferences.setThemeMode(mode)
+    }
+
+    fun updateColorPreset(preset: String) {
+        _colorPreset.value = preset
+        appPreferences.setColorPreset(preset)
+        showNotification("Applied M3 theme preset: $preset")
+    }
+
+    fun updateM3LoadingStyle(style: String) {
+        _m3LoadingStyle.value = style
+        appPreferences.setM3LoadingStyle(style)
+        showNotification("Updated Material 3 loading style")
+    }
+
+    fun updateRssSyncInterval(minutes: Int, context: android.content.Context) {
+        _rssSyncIntervalMinutes.value = minutes
+        appPreferences.setRssSyncIntervalMinutes(minutes)
+        if (_isRssNotificationEnabled.value) {
+            com.example.data.rss.RssBackgroundReceiver.schedulePeriodicSync(context)
+        }
+        showNotification("Background RSS check set to every ${minutes}m")
+    }
+
+    fun updateFastUploadMode(enabled: Boolean) {
+        _fastUploadMode.value = enabled
+        appPreferences.setFastUploadMode(enabled)
+        showNotification(if (enabled) "Fast parallel upload enabled" else "Standard upload mode enabled")
+    }
+
+    fun clearAppCache() {
+        showNotification("App preferences & cache refreshed")
+    }
 
     private fun showNotification(message: String, isError: Boolean = false) {
         _uiNotification.value = UiNotification(message = message, isError = isError)

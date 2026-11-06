@@ -90,7 +90,8 @@ fun OsunHiveRssFeedComponent(
     feedState: RssFeedState,
     onRefresh: () -> Unit,
     onToggleBookmark: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    loadingStyle: String = "CIRCULAR_EXPRESSIVE"
 ) {
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
@@ -206,7 +207,7 @@ fun OsunHiveRssFeedComponent(
         // State Machine: Loading, Error, or Scrollable Content
         when (feedState) {
             is RssFeedState.Loading -> {
-                FeedLoadingState()
+                FeedLoadingState(loadingStyle = loadingStyle)
             }
             is RssFeedState.Error -> {
                 FeedErrorState(
@@ -482,7 +483,7 @@ private fun FeedItemCard(
 }
 
 @Composable
-private fun FeedLoadingState() {
+private fun FeedLoadingState(loadingStyle: String) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -493,22 +494,15 @@ private fun FeedLoadingState() {
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(24.dp)
         ) {
-            CircularProgressIndicator(
-                color = HiveGold,
-                strokeWidth = 3.dp,
-                modifier = Modifier.size(44.dp)
+            M3LoadingView(
+                style = loadingStyle,
+                message = "Connecting to Osun Hive blog...",
+                modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Connecting to Osun Hive blog...",
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = "Fetching latest articles from https://www.osunhive.name.ng",
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )

@@ -114,4 +114,39 @@ class AppPreferences(context: Context) {
     fun setCachedRemoteConfig(json: String) {
         prefs.edit().putString("cached_remote_links_json", json).apply()
     }
+
+    // Material 3 Theme Mode (DARK, LIGHT, SYSTEM)
+    fun getThemeMode(): String = prefs.getString("theme_mode", "DARK") ?: "DARK"
+
+    fun setThemeMode(mode: String) {
+        prefs.edit().putString("theme_mode", mode).apply()
+    }
+
+    // Material 3 Color Preset (HIVE_GOLD, DYNAMIC, OCEAN_BLUE, CYBER_PURPLE, SUNSET_AMBER, AMOLED_BLACK)
+    fun getColorPreset(): String = prefs.getString("color_preset", "HIVE_GOLD") ?: "HIVE_GOLD"
+
+    fun setColorPreset(preset: String) {
+        prefs.edit().putString("color_preset", preset).apply()
+    }
+
+    // Material 3 Loading Indicator Style (CIRCULAR_EXPRESSIVE, LINEAR_WAVE, SKELETON_SHIMMER)
+    fun getM3LoadingStyle(): String = prefs.getString("m3_loading_style", "CIRCULAR_EXPRESSIVE") ?: "CIRCULAR_EXPRESSIVE"
+
+    fun setM3LoadingStyle(style: String) {
+        prefs.edit().putString("m3_loading_style", style).apply()
+    }
+
+    // RSS Background Sync Interval in Minutes (15, 30, 60, 180)
+    fun getRssSyncIntervalMinutes(): Int = prefs.getInt("rss_sync_interval_mins", 30)
+
+    fun setRssSyncIntervalMinutes(minutes: Int) {
+        prefs.edit().putInt("rss_sync_interval_mins", minutes).apply()
+    }
+
+    // Fast Mode / Parallel Uploading
+    fun isFastUploadMode(): Boolean = prefs.getBoolean("fast_upload_mode", true)
+
+    fun setFastUploadMode(enabled: Boolean) {
+        prefs.edit().putBoolean("fast_upload_mode", enabled).apply()
+    }
 }
