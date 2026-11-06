@@ -122,10 +122,18 @@ object RssParser {
                                     currentGuid = parser.nextText().trim()
                                 }
                                 tagName.equals("enclosure", ignoreCase = true) ||
-                                tagName.equals("thumbnail", ignoreCase = true) -> {
+                                tagName.equals("thumbnail", ignoreCase = true) ||
+                                tagName.endsWith(":thumbnail", ignoreCase = true) ||
+                                tagName.endsWith(":content", ignoreCase = true) -> {
                                     val url = parser.getAttributeValue(null, "url")
+                                    val type = parser.getAttributeValue(null, "type") ?: ""
+                                    val medium = parser.getAttributeValue(null, "medium") ?: ""
                                     if (!url.isNullOrBlank()) {
-                                        currentImageUrl = url
+                                        if (medium.equals("image", ignoreCase = true) ||
+                                            type.startsWith("image/", ignoreCase = true) ||
+                                            currentImageUrl == null) {
+                                            currentImageUrl = url
+                                        }
                                     }
                                 }
                             }
@@ -192,9 +200,21 @@ object RssParser {
     }
 
     private fun extractImageUrl(html: String): String? {
-        val matcher = IMG_SRC_PATTERN.matcher(html)
-        return if (matcher.find()) {
-            matcher.group(1)
-        } else null
+        val srcMatcher = IMG_SRC_PATTERN.matcher(html)
+        if (srcMatcher.find()) {
+            val url = srcMatcher.group(1)?.trim()
+            if (!url.isNullOrBlank() && (url.startsWith("http://") || url.startsWith("https://"))) {
+                return url
+            }
+        }
+        val dataSrcPattern = Pattern.compile("data-(?:original|src|url)\\s*=\\s*['\"]([^'\"]+)['\"]", Pattern.CASE_INSENSITIVE)
+        val dataSrcMatcher = dataSrcPattern.matcher(html)
+        if (dataSrcMatcher.find()) {
+            val url = dataSrcMatcher.group(1)?.trim()
+            if (!url.isNullOrBlank() && (url.startsWith("http://") || url.startsWith("https://"))) {
+                return url
+            }
+        }
+        return null
     }
 }

@@ -74,20 +74,57 @@ class NotificationHelper(private val context: Context) {
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("Osun Hive: ${item.title}")
             .setContentText(item.description.take(120))
-            .setStyle(
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        // If the RSS post has an image, load it and display as BigPictureStyle
+        val imageUrl = item.imageUrl
+        if (!imageUrl.isNullOrBlank()) {
+            val bitmap = downloadNotificationBitmap(imageUrl)
+            if (bitmap != null) {
+                builder.setStyle(
+                    NotificationCompat.BigPictureStyle()
+                        .bigPicture(bitmap)
+                        .setBigContentTitle(item.title)
+                        .setSummaryText(item.category ?: "Osun Hive Feed")
+                )
+            } else {
+                builder.setStyle(
+                    NotificationCompat.BigTextStyle()
+                        .bigText(item.description.ifBlank { item.title })
+                        .setBigContentTitle(item.title)
+                        .setSummaryText(item.category ?: "Osun Hive Feed")
+                )
+            }
+        } else {
+            builder.setStyle(
                 NotificationCompat.BigTextStyle()
                     .bigText(item.description.ifBlank { item.title })
                     .setBigContentTitle(item.title)
                     .setSummaryText(item.category ?: "Osun Hive Feed")
             )
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
+        }
 
         try {
             NotificationManagerCompat.from(context).notify(item.id.hashCode(), builder.build())
         } catch (e: SecurityException) {
             e.printStackTrace()
+        }
+    }
+
+    private fun downloadNotificationBitmap(url: String): android.graphics.Bitmap? {
+        return try {
+            val connection = java.net.URL(url).openConnection() as java.net.HttpURLConnection
+            connection.doInput = true
+            connection.connectTimeout = 5000
+            connection.readTimeout = 5000
+            connection.connect()
+            connection.inputStream.use { stream ->
+                android.graphics.BitmapFactory.decodeStream(stream)
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 
@@ -108,14 +145,25 @@ class NotificationHelper(private val context: Context) {
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("Osun Hive Live Alert")
             .setContentText("New post: Exploring Innovation and Digital Culture in Osun State")
-            .setStyle(
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        val sampleBitmap = downloadNotificationBitmap("https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800")
+        if (sampleBitmap != null) {
+            builder.setStyle(
+                NotificationCompat.BigPictureStyle()
+                    .bigPicture(sampleBitmap)
+                    .setBigContentTitle("Exploring Innovation and Digital Culture in Osun State")
+                    .setSummaryText("Breaking News • Osun Hive")
+            )
+        } else {
+            builder.setStyle(
                 NotificationCompat.BigTextStyle()
                     .bigText("Stay ahead with fresh tech stories, cultural spotlights, and campus youth reports published on https://www.osunhive.name.ng")
                     .setSummaryText("Breaking News • Osun Hive")
             )
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
+        }
 
         try {
             NotificationManagerCompat.from(context).notify(999, builder.build())

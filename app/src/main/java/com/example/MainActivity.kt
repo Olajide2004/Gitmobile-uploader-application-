@@ -73,6 +73,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Initialize background RSS synchronization if enabled
+        if (viewModel.appPreferences.isRssNotificationEnabled()) {
+            com.example.data.rss.RssBackgroundReceiver.schedulePeriodicSync(this)
+        }
+
         setContent {
             MyApplicationTheme {
                 GitMobileApp(viewModel = viewModel)

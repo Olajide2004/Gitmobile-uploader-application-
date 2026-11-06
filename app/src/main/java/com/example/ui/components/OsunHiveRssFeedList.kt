@@ -290,16 +290,21 @@ fun OsunHiveRssFeedComponent(
                     }
 
                     if (!article.imageUrl.isNullOrBlank()) {
-                        Spacer(modifier = Modifier.height(10.dp))
-                        AsyncImage(
-                            model = article.imageUrl,
-                            contentDescription = article.title,
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(160.dp)
-                                .clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop
-                        )
+                                .height(190.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Color(0xFF161B22))
+                        ) {
+                            AsyncImage(
+                                model = article.imageUrl,
+                                contentDescription = article.title,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -398,18 +403,23 @@ private fun FeedItemCard(
                 }
             }
 
-            // Thumbnail Image if present
+            // Post Image preview if present in RSS item
             if (!article.imageUrl.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                AsyncImage(
-                    model = article.imageUrl,
-                    contentDescription = article.title,
+                Spacer(modifier = Modifier.height(10.dp))
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(130.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop
-                )
+                        .height(150.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color(0xFF161B22))
+                ) {
+                    AsyncImage(
+                        model = article.imageUrl,
+                        contentDescription = article.title,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))

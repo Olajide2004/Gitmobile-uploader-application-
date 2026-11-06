@@ -134,6 +134,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // RSS Feed
     val rssFeedState: StateFlow<RssFeedState> = rssRepository.feedState
 
+    private val _isRssNotificationEnabled = MutableStateFlow(appPreferences.isRssNotificationEnabled())
+    val isRssNotificationEnabled: StateFlow<Boolean> = _isRssNotificationEnabled.asStateFlow()
+
     // Transient UI Notification (Snackbar/Banner)
     private val _uiNotification = MutableStateFlow<UiNotification?>(null)
     val uiNotification: StateFlow<UiNotification?> = _uiNotification.asStateFlow()
@@ -392,7 +395,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun triggerTestNotification() {
         notificationHelper.postTestNotification()
-        showNotification("Sent Osun Hive post alert notification!")
+        showNotification("Sent Osun Hive post alert notification with image preview!")
+    }
+
+    fun setRssNotificationEnabled(enabled: Boolean, context: android.content.Context) {
+        _isRssNotificationEnabled.value = enabled
+        appPreferences.setRssNotificationEnabled(enabled)
+        if (enabled) {
+            com.example.data.rss.RssBackgroundReceiver.schedulePeriodicSync(context)
+            showNotification("Background RSS check enabled (every 30m)")
+        } else {
+            com.example.data.rss.RssBackgroundReceiver.cancelPeriodicSync(context)
+            showNotification("Background RSS check paused")
+        }
+    }
+
+    fun syncRssInBackgroundNow(context: android.content.Context) {
+        viewModelScope.launch {
+            showNotification("Checking Osun Hive for new stories in background...")
+            rssRepository.fetchFeed(forceRefresh = true)
+        }
     }
 
     fun toggleBookmark(articleId: String) {
